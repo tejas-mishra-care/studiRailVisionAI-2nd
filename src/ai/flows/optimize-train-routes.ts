@@ -28,6 +28,7 @@ const OptimizeTrainRoutesOutputSchema = z.array(z.object({
   start_time: z.string(),
   end_time: z.string(),
   reasoning: z.string(),
+  delay_impact_minutes: z.number().optional().describe('Estimated delay in minutes for this train or others caused by this action.'),
 }));
 export type OptimizeTrainRoutesOutput = z.infer<typeof OptimizeTrainRoutesOutputSchema>;
 
@@ -77,8 +78,9 @@ Generate an action plan for each train. The output MUST be a JSON array of objec
 - "start_time": The start time for the action (HH:MM).
 - "end_time": The end time for the action (HH:MM).
 - "reasoning": A concise explanation for your decision, explicitly mentioning how the manual override was handled if one was provided.
+- "delay_impact_minutes": Estimated delay in minutes for this train or others caused by this action. If there is no delay, set this to 0.
 
-Think step-by-step to create a conflict-free and optimal plan. Prioritize express trains over freight trains. Minimize delays.
+Crucially, if an action (especially a 'HOLD') will cause a delay to this train or another train, you MUST quantify this in the 'delay_impact_minutes' field and explain it in the 'reasoning'. Think step-by-step to create a conflict-free and optimal plan. Prioritize express trains over freight trains. Minimize delays.
 `,
 });
 

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, BrainCircuit, History, AlertTriangle, Lightbulb, CheckCircle, GaugeCircle } from "lucide-react";
+import { ShieldCheck, BrainCircuit, History, AlertTriangle, Lightbulb, CheckCircle, GaugeCircle, Clock } from "lucide-react";
 import { auditLogData as defaultAuditLogData, optimizationPlanData as defaultOptimizationPlanData } from "@/lib/data";
 
 const actionIcons: { [key: string]: React.ElementType } = {
@@ -78,6 +78,11 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData }: { i
   
   const optimizationPlan = optimizationPlanData || currentOptimizationPlan;
 
+  const sortedOptimizationPlan = useMemo(() => {
+    if (!optimizationPlan) return [];
+    return [...optimizationPlan].sort((a, b) => a.start_time.localeCompare(b.start_time));
+  }, [optimizationPlan]);
+
   return (
     <Card>
       <CardHeader>
@@ -109,22 +114,25 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData }: { i
             ) : (
               <div className="space-y-4">
                 <SafetyShieldStatus active={!!optimizationPlanData} />
-                {optimizationPlan && optimizationPlan.length > 0 ? (
+                {sortedOptimizationPlan && sortedOptimizationPlan.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Time</TableHead>
                         <TableHead>Train</TableHead>
                         <TableHead>Action</TableHead>
                         <TableHead>Target</TableHead>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Reasoning</TableHead>
+                        <TableHead>Impact</TableHead>
+                        <TableHead className="w-[40%]">Reasoning</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {optimizationPlan.map((plan: any, index: number) => {
+                      {sortedOptimizationPlan.map((plan: any, index: number) => {
                         const Icon = actionIcons[plan.action] || Lightbulb;
+                        const hasDelay = plan.delay_impact_minutes > 0;
                         return (
-                          <TableRow key={`${plan.train_id}-${index}`}>
+                          <TableRow key={`${plan.train_id}-${plan.start_time}-${index}`}>
+                            <TableCell className="font-mono text-xs">{plan.start_time}-{plan.end_time}</TableCell>
                             <TableCell className="font-medium">{plan.train_id}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
@@ -133,8 +141,20 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData }: { i
                               </Badge>
                             </TableCell>
                             <TableCell>{plan.target_node}</TableCell>
-                            <TableCell>{plan.start_time}-{plan.end_time}</TableCell>
-                            <TableCell>{plan.reasoning}</TableCell>
+                             <TableCell>
+                              {hasDelay ? (
+                                <Badge variant="destructive" className="flex items-center gap-1.5 w-fit bg-orange-500/20 text-orange-700">
+                                  <Clock className="h-3 w-3" />
+                                  {plan.delay_impact_minutes} min
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="flex items-center gap-1.5 w-fit bg-green-500/10 text-green-700">
+                                   <CheckCircle className="h-3 w-3" />
+                                  On Time
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">{plan.reasoning}</TableCell>
                           </TableRow>
                         );
                       })}
