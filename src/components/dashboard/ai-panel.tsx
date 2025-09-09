@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck, BrainCircuit, History, AlertTriangle, Lightbulb, CheckCircle, GaugeCircle, Clock, FileWarning } from "lucide-react";
-import { auditLogData as defaultAuditLogData, optimizationPlanData as defaultOptimizationPlanData } from "@/lib/data";
+import { auditLogData as defaultAuditLogData } from "@/lib/data";
+import { OptimizeTrainRoutesOutput } from '@/ai/flows/optimize-train-routes';
 
 const actionIcons: { [key: string]: React.ElementType } = {
   ASSIGN: GaugeCircle,
@@ -52,26 +53,8 @@ function SafetyShieldStatus({ active }: { active: boolean }) {
   );
 }
 
-export function AIPanel({ isLoading, predictionData, optimizationPlanData, manualOverride }: { isLoading: boolean, predictionData: any, optimizationPlanData: any, manualOverride: string | null }) {
-  const [currentOptimizationPlan, setCurrentOptimizationPlan] = useState(null);
+export function AIPanel({ isLoading, predictionData, optimizationPlanData, manualOverride }: { isLoading: boolean, predictionData: any, optimizationPlanData: OptimizeTrainRoutesOutput | null, manualOverride: string | null }) {
   const [currentPrediction, setCurrentPrediction] = useState(null);
-  const [isClientLoading, setIsClientLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate initial loading delay
-    if (!predictionData && !optimizationPlanData) {
-      const timer = setTimeout(() => setIsClientLoading(false), 3500);
-      return () => clearTimeout(timer);
-    } else {
-      setIsClientLoading(false);
-    }
-  }, [predictionData, optimizationPlanData]);
-
-  useEffect(() => {
-    if (optimizationPlanData) {
-      setCurrentOptimizationPlan(optimizationPlanData);
-    }
-  }, [optimizationPlanData]);
 
   useEffect(() => {
     if (predictionData) {
@@ -79,16 +62,12 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData, manua
     }
   }, [predictionData]);
 
-  const finalIsLoading = isLoading || (isClientLoading && !predictionData && !optimizationPlanData);
-  
-  const optimizationPlan = optimizationPlanData || currentOptimizationPlan;
-
   const sortedOptimizationPlan = useMemo(() => {
-    if (!optimizationPlan) return [];
+    if (!optimizationPlanData) return [];
     // Ensure we have a fresh copy to sort
-    const planToSort = JSON.parse(JSON.stringify(optimizationPlan));
+    const planToSort = JSON.parse(JSON.stringify(optimizationPlanData));
     return planToSort.sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
-  }, [optimizationPlan]);
+  }, [optimizationPlanData]);
 
   return (
     <Card>
@@ -113,7 +92,7 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData, manua
           </TabsList>
           
           <TabsContent value="optimization" className="mt-4">
-            {finalIsLoading ? (
+            {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-24 w-full" />
@@ -187,7 +166,7 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData, manua
           </TabsContent>
 
           <TabsContent value="prediction" className="mt-4">
-             {finalIsLoading && !currentPrediction ? (
+             {isLoading && !currentPrediction ? (
                 <Skeleton className="h-24 w-full" />
              ) : currentPrediction && (currentPrediction as any).conflicts.length > 0 ? (
               <Alert>
