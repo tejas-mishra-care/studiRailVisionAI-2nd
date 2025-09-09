@@ -8,7 +8,7 @@ import { ControlPanel } from "@/components/dashboard/control-panel";
 import { LiveStatusPanel } from "@/components/dashboard/live-status-panel";
 import { AIPanel } from "@/components/dashboard/ai-panel";
 import { predictFutureTraffic } from "@/ai/flows/predict-future-traffic";
-import { optimizeTrainRoutes } from "@/ai/flows/optimize-train-routes";
+import { optimizeTrainRoutes, OptimizeTrainRoutesOutput } from "@/ai/flows/optimize-train-routes";
 import { stationLayoutData, trainData as liveTrainStatuses } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,7 +16,7 @@ type LoadingState = 'prediction' | 'optimization' | null;
 
 export default function Home() {
   const [prediction, setPrediction] = useState(null);
-  const [optimization, setOptimization] = useState(null);
+  const [optimization, setOptimization] = useState<OptimizeTrainRoutesOutput | null>(null);
   const [isLoading, setIsLoading] = useState<LoadingState>(null);
   const { toast } = useToast();
 
@@ -51,8 +51,7 @@ export default function Home() {
         liveTrainStatuses: JSON.stringify(liveTrainStatuses),
         manualOverride: manualOverride,
       });
-      const parsedResult = JSON.parse(result);
-      setOptimization(parsedResult);
+      setOptimization(result);
     } catch (error) {
       console.error("Error running optimization:", error);
       toast({

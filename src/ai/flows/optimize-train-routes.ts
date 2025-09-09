@@ -21,9 +21,14 @@ const OptimizeTrainRoutesInputSchema = z.object({
 });
 export type OptimizeTrainRoutesInput = z.infer<typeof OptimizeTrainRoutesInputSchema>;
 
-const OptimizeTrainRoutesOutputSchema = z.string().describe(
-  'A JSON array of action plans for each train, including train_id, action (ASSIGN, HOLD, PROCEED), target_node, start_time, end_time, and reasoning.'
-);
+const OptimizeTrainRoutesOutputSchema = z.array(z.object({
+  train_id: z.string(),
+  action: z.enum(['ASSIGN', 'HOLD', 'PROCEED']),
+  target_node: z.string(),
+  start_time: z.string(),
+  end_time: z.string(),
+  reasoning: z.string(),
+}));
 export type OptimizeTrainRoutesOutput = z.infer<typeof OptimizeTrainRoutesOutputSchema>;
 
 export async function optimizeTrainRoutes(input: OptimizeTrainRoutesInput): Promise<OptimizeTrainRoutesOutput> {
@@ -34,14 +39,7 @@ const prompt = ai.definePrompt({
   name: 'optimizeTrainRoutesPrompt',
   input: {schema: OptimizeTrainRoutesInputSchema},
   output: {
-    schema: z.array(z.object({
-      train_id: z.string(),
-      action: z.enum(['ASSIGN', 'HOLD', 'PROCEED']),
-      target_node: z.string(),
-      start_time: z.string(),
-      end_time: z.string(),
-      reasoning: z.string(),
-    })).transform(val => JSON.stringify(val))
+    schema: OptimizeTrainRoutesOutputSchema
   },
   prompt: `You are SAARATHI, a world-class railway traffic optimization expert for Indian Railways. Your sole task is to generate a safe, conflict-free, and optimized schedule for the provided station layout and live train statuses. You must think step-by-step and adhere strictly to all rules and output formats.
 
