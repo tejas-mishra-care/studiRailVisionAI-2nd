@@ -111,7 +111,40 @@ export const auditLogData = [
 
 export type AuditLog = (typeof auditLogData)[0];
 
-export const optimizationPlanData: OptimizationPlan[] = [];
+export const optimizationPlanData: OptimizationPlan[] = [
+    {
+        "train_id": "12417",
+        "action": "ASSIGN",
+        "target_node": "P3",
+        "start_time": "06:58",
+        "end_time": "07:15",
+        "reasoning": "Assigning to scheduled platform. Path is clear."
+    },
+    {
+        "train_id": "12002",
+        "action": "HOLD",
+        "target_node": "S1",
+        "start_time": "07:10",
+        "end_time": "07:18",
+        "reasoning": "Holding at signal S1 to allow 04408 to clear crossover. Prevents conflict."
+    },
+    {
+        "train_id": "04408",
+        "action": "PROCEED",
+        "target_node": "P12",
+        "start_time": "07:02",
+        "end_time": "07:10",
+        "reasoning": "Proceeding to platform. Path is clear."
+    },
+    {
+        "train_id": "FREIGHT-01",
+        "action": "HOLD",
+        "target_node": "YARD1",
+        "start_time": "06:00",
+        "end_time": "09:00",
+        "reasoning": "Low priority freight. Holding in yard during peak passenger hours."
+    }
+];
 
 export type OptimizationPlan = {
   train_id: string;
