@@ -19,24 +19,28 @@ export function Map() {
   }
 
   // A helper to place trains on the map based on their status
-  const getTrainPosition = (train: typeof trainData[0]): { x: number, y: number, color: string } => {
-    const defaultPosition = { x: 50, y: 50, color: "text-gray-400" }; // Default for unknown
+  const getTrainPosition = (train: typeof trainData[0]): { x: number, y: number, color: string, direction: 'in' | 'out' | 'none', destinationText: string } => {
+    const defaultPosition = { x: 50, y: 50, color: "text-gray-400", direction: 'none', destinationText: train.destination };
     const platformMatch = train.destination.match(/NDLS P-(\d+)/);
     const locationMatch = train.location.match(/NDLS P-(\d+)/);
 
     if (train.location.includes("Departed")) {
        const departedPlatform = parseInt(locationMatch?.[1] || '16', 10);
-       return { x: 800, y: platformYPosition(departedPlatform) - 10, color: "text-green-500" };
+       return { x: 800, y: platformYPosition(departedPlatform) - 10, color: "text-green-500", direction: 'out', destinationText: `To ${train.destination}` };
     }
     if (train.location.includes("Approaching")) {
-       return { x: 180, y: 80, color: "text-orange-500" };
+       return { x: 180, y: 80, color: "text-orange-500", direction: 'in', destinationText: `To ${train.destination}` };
     }
     if (train.location.includes("Yard")) {
-       return { x: 650, y: 45, color: "text-gray-500" };
+       return { x: 650, y: 45, color: "text-gray-500", direction: 'none', destinationText: "Yard/Stabling" };
     }
-    if (platformMatch) {
+    if (locationMatch) { // Train is AT a platform
+        const platformNumber = parseInt(locationMatch[1], 10);
+        return { x: 450, y: platformYPosition(platformNumber) - 10, color: "text-blue-500", direction: 'none', destinationText: `At P-${platformNumber}` };
+    }
+     if (platformMatch) { // Train is assigned to a platform but not there yet
       const platformNumber = parseInt(platformMatch[1], 10);
-      return { x: 450, y: platformYPosition(platformNumber) - 10, color: "text-blue-500" };
+      return { x: 250, y: platformYPosition(platformNumber) - 10, color: "text-yellow-500", direction: 'in', destinationText: `To P-${platformNumber}` };
     }
     
     return defaultPosition;
@@ -156,7 +160,10 @@ export function Map() {
             return (
               <g key={train.id} transform={`translate(${pos.x} ${pos.y})`}>
                 <TrainFront className={pos.color} />
-                <text x="28" y="16" fill="#e5e5e5" fontSize="10" fontWeight="bold">{train.id}</text>
+                <text x="28" y="10" fill="#e5e5e5" fontSize="10" fontWeight="bold">{train.id}</text>
+                <text x="28" y="22" fill="#d4d4d4" fontSize="9">{pos.destinationText}</text>
+                {pos.direction === 'in' && <ArrowRight x={-20} y={5} className="text-yellow-400" width="16" height="16" />}
+                {pos.direction === 'out' && <ArrowRight x={70} y={5} className="text-green-400" width="16" height="16" />}
               </g>
             )
           })}
@@ -171,5 +178,3 @@ export function Map() {
     </Card>
   );
 }
-
-    

@@ -61,7 +61,7 @@ export const trainData = [
     status: "On Time",
     statusIcon: CheckCircle,
     statusColor: "text-green-500",
-    location: "Approaching Outer Signal",
+    location: "NDLS P-2",
     destination: "NDLS P-2",
     eta: "08:30",
     length_coaches: 22,
