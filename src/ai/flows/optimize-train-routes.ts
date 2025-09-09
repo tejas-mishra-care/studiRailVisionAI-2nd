@@ -45,7 +45,7 @@ const prompt = ai.definePrompt({
   prompt: `You are SAARATHI, a world-class railway traffic optimization expert for Indian Railways. Your sole task is to generate a safe, conflict-free, and optimized schedule for the provided station layout and live train statuses. You must think step-by-step and adhere strictly to all rules and output formats.
 
 ## CRITICAL OVERRIDE INSTRUCTION FROM HUMAN CONTROLLER ##
-This is the most important instruction. You MUST adhere to it above all other rules if it conflicts with them.
+This is the most important instruction. You MUST adhere to it above all other rules if it conflicts with them. Treat this instruction as a new, temporary, and absolute constraint on the system. For example, if the override says a platform is closed, you CANNOT assign any trains to it. If it says a train must be prioritized, you MUST adjust the schedule for it.
 "{{{manualOverride}}}"
 
 ## CONTEXT DATA ##
@@ -91,6 +91,9 @@ const optimizeTrainRoutesFlow = ai.defineFlow(
     outputSchema: OptimizeTrainRoutesOutputSchema,
   },
   async input => {
+    if (input.manualOverride?.trim() === '') {
+      input.manualOverride = undefined;
+    }
     const {output} = await prompt(input);
     return output!;
   }
