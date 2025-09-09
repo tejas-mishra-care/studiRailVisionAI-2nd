@@ -1,15 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrainFront, Signal, TrafficCone, MapPin } from "lucide-react";
+import { trainData } from "@/lib/data";
 
 export function Map() {
-  // Simplified train positions for visual representation
+  
+  const platformYPosition = (platformNumber: number): number => {
+    if (platformNumber === 1) return 120;
+    if (platformNumber >= 2 && platformNumber <= 15) {
+      const islandIndex = Math.floor((platformNumber - 2) / 2);
+      const yBase = 155 + islandIndex * 35;
+      return platformNumber % 2 === 0 ? yBase : yBase + 15;
+    }
+    if (platformNumber === 16) return 155 + 7 * 35;
+    return 0;
+  }
+
   const trainPositions: { [key: string]: { x: number, y: number, color: string } } = {
-    "12417": { x: 450, y: 195, color: "text-green-500" }, // On Platform 3
-    "12002": { x: 180, y: 80, color: "text-orange-500" }, // Approaching
-    "04408": { x: 750, y: 355, color: "text-blue-500" }, // On a siding/local line
-    "FREIGHT-01": { x: 650, y: 45, color: "text-gray-600" }, // On yard line
-    "12951": { x: 450, y: 145, color: "text-purple-500" }, // On Platform 2
+    "12417": { x: 450, y: platformYPosition(3) - 10, color: "text-green-500" }, 
+    "12002": { x: 180, y: 80, color: "text-orange-500" }, 
+    "04408": { x: 450, y: platformYPosition(12) - 10, color: "text-blue-500" },
+    "FREIGHT-01": { x: 650, y: 45, color: "text-gray-600" },
+    "12951": { x: 450, y: platformYPosition(2) - 10, color: "text-purple-500" }, 
+    "22435": { x: 800, y: platformYPosition(16) - 10, color: "text-yellow-400"},
+    "12302": { x: 450, y: platformYPosition(9) - 10, color: "text-indigo-400"},
   };
 
   return (
@@ -29,45 +43,71 @@ export function Map() {
           <rect width="100%" height="100%" fill="url(#grid)" />
 
           {/* Labels */}
-          <text x="50" y="30" fill="#a3a3a3" fontSize="12">To Panipat (PNP)</text>
-          <text x="50" y="470" fill="#a3a3a3" fontSize="12">To Ghaziabad (GZB)</text>
-          <text x="900" y="30" fill="#a3a3a3" fontSize="12">To Rohtak (ROK)</text>
-          <text x="880" y="470" fill="#a3a3a3" fontSize="12">To Mathura (MTJ)</text>
-
-          {/* Main Lines */}
+          <text x="50" y="30" fill="#a3a3a3" fontSize="12">To Panipat / West</text>
+          <text x="50" y="470" fill="#a3a3a3" fontSize="12">To Ghaziabad / East</text>
+          <text x="850" y="30" fill="#a3a3a3" fontSize="12">Paharganj Side (Entry)</text>
+          <text x="850" y="470" fill="#a3a3a3" fontSize="12">Ajmeri Gate Side (Entry)</text>
+          <text x="450" y="30" fill="#a3a3a3" fontSize="12">Washing/Stabling Lines</text>
+          
+          {/* Main Through Lines */}
           <path d="M 0 100 H 1000" stroke="#737373" strokeWidth="4" />
           <path d="M 0 400 H 1000" stroke="#737373" strokeWidth="4" />
-
+          
           {/* Yard/Siding Lines */}
-          <path d="M 600 50 H 950" stroke="#525252" strokeWidth="2" />
-          <path d="M 700 360 H 950" stroke="#525252" strokeWidth="2" />
-          
+          <path d="M 300 50 H 700" stroke="#525252" strokeWidth="2" />
+          <path d="M 300 70 H 700" stroke="#525252" strokeWidth="2" />
+
           {/* Platforms */}
-          {[1, 2, 3, 4, 5, 12, 16].map((p, i) => (
-             <g key={`p-${p}`}>
-                <rect x="300" y={120 + i * 25} width="400" height="15" rx="3" fill="#404040" />
-                <text x="310" y={131 + i * 25} fill="#a3a3a3" fontSize="9">{`P${p}`}</text>
-             </g>
-          ))}
+          {/* Platform 1 (Side Platform) */}
+          <g>
+            <rect x="250" y={platformYPosition(1)} width="500" height="15" rx="3" fill="#404040" />
+            <text x="260" y={platformYPosition(1) + 11} fill="#a3a3a3" fontSize="9">P1</text>
+          </g>
 
-          {/* Tracks to Platforms */}
-          <path d="M 150 100 C 225 100, 250 127, 300 127" fill="none" stroke="#525252" strokeWidth="2" />
-          <path d="M 700 127 H 800 C 850 127, 900 100, 950 100" fill="none" stroke="#525252" strokeWidth="2" />
+          {/* Island Platforms 2-15 */}
+          {Array.from({ length: 7 }).map((_, i) => {
+              const p_even = 2 + i * 2;
+              const p_odd = 3 + i * 2;
+              const y_base = 155 + i * 35;
+              return (
+                <g key={`island-${i}`}>
+                  <rect x="250" y={y_base} width="500" height="30" rx="3" fill="#404040" />
+                  <line x1="250" y1={y_base+15} x2="750" y2={y_base+15} stroke="#303030" strokeWidth="1" />
+                  <text x="260" y={y_base + 11} fill="#a3a3a3" fontSize="9">{`P${p_even}`}</text>
+                  <text x="260" y={y_base + 26} fill="#a3a3a3" fontSize="9">{`P${p_odd}`}</text>
+                </g>
+              )
+          })}
+
+          {/* Platform 16 (Side Platform) */}
+          <g>
+            <rect x="250" y={platformYPosition(16)} width="500" height="15" rx="3" fill="#404040" />
+            <text x="260" y={platformYPosition(16) + 11} fill="#a3a3a3" fontSize="9">P16</text>
+          </g>
           
-          <path d="M 150 400 C 225 400, 250 282, 300 282" fill="none" stroke="#525252" strokeWidth="2" />
-          <path d="M 700 282 H 800 C 850 282, 900 400, 950 400" fill="none" stroke="#525252" strokeWidth="2" />
-
+          {/* Tracks to Platforms */}
+          <path d="M 150 100 C 200 100, 225 120, 250 120" fill="none" stroke="#525252" strokeWidth="2" />
+          <path d="M 750 120 H 800 C 850 120, 900 100, 950 100" fill="none" stroke="#525252" strokeWidth="2" />
+          
+          <path d="M 150 400 C 200 400, 225 390, 250 390" fill="none" stroke="#525252" strokeWidth="2" />
+          <path d="M 750 390 H 800 C 850 390, 900 400, 950 400" fill="none" stroke="#525252" strokeWidth="2" />
+          
           {/* Crossovers */}
           <path d="M 200 100 C 350 100, 650 400, 800 400" fill="none" stroke="#525252" strokeDasharray="3 3" strokeWidth="1.5" />
           <path d="M 200 400 C 350 400, 650 100, 800 100" fill="none" stroke="#525252" strokeDasharray="3 3" strokeWidth="1.5" />
+          <path d="M 175 100 L 225 155" fill="none" stroke="#525252" strokeWidth="1.5" />
+          <path d="M 175 400 L 225 350" fill="none" stroke="#525252" strokeWidth="1.5" />
+          <path d="M 775 155 L 825 100" fill="none" stroke="#525252" strokeWidth="1.5" />
+          <path d="M 775 350 L 825 400" fill="none" stroke="#525252" strokeWidth="1.5" />
+
 
           {/* Signals */}
           <Signal x="140" y="80" className="text-green-500" />
           <Signal x="140" y="380" className="text-red-500" />
           <Signal x="810" y="80" className="text-red-500" />
           <Signal x="810" y="380" className="text-green-500" />
-
-          {/* Trains */}
+          
+          {/* Dynamic Train Positions */}
           {Object.entries(trainPositions).map(([id, pos]) => (
             <g key={id} transform={`translate(${pos.x} ${pos.y})`}>
               <TrainFront className={pos.color} />
@@ -76,7 +116,7 @@ export function Map() {
           ))}
 
           {/* Maintenance Block */}
-          <g transform="translate(500 240)" className="cursor-pointer">
+          <g transform="translate(500, 320)" className="cursor-pointer">
             <TrafficCone className="text-yellow-500" />
             <text x="25" y="15" fill="#e5e5e5" fontSize="10">Maint.</text>
           </g>
