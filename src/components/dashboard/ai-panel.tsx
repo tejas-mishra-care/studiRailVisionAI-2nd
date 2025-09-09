@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, BrainCircuit, History, AlertTriangle, Lightbulb, CheckCircle, GaugeCircle, Clock } from "lucide-react";
+import { ShieldCheck, BrainCircuit, History, AlertTriangle, Lightbulb, CheckCircle, GaugeCircle, Clock, FileWarning } from "lucide-react";
 import { auditLogData as defaultAuditLogData, optimizationPlanData as defaultOptimizationPlanData } from "@/lib/data";
 
 const actionIcons: { [key: string]: React.ElementType } = {
@@ -52,7 +52,7 @@ function SafetyShieldStatus({ active }: { active: boolean }) {
   );
 }
 
-export function AIPanel({ isLoading, predictionData, optimizationPlanData }: { isLoading: boolean, predictionData: any, optimizationPlanData: any }) {
+export function AIPanel({ isLoading, predictionData, optimizationPlanData, manualOverride }: { isLoading: boolean, predictionData: any, optimizationPlanData: any, manualOverride: string | null }) {
   const [currentOptimizationPlan, setCurrentOptimizationPlan] = useState(defaultOptimizationPlanData);
   const [currentPrediction, setCurrentPrediction] = useState(null);
   const [isClientLoading, setIsClientLoading] = useState(true);
@@ -113,6 +113,15 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData }: { i
               </div>
             ) : (
               <div className="space-y-4">
+                {manualOverride && (
+                  <Alert variant="destructive" className="bg-yellow-50 border-yellow-300 text-yellow-800 [&>svg]:text-yellow-600">
+                    <FileWarning className="h-4 w-4" />
+                    <AlertTitle>Manual Override Active</AlertTitle>
+                    <AlertDescription>
+                     The current plan incorporates the following instruction: "{manualOverride}"
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <SafetyShieldStatus active={!!optimizationPlanData} />
                 {sortedOptimizationPlan && sortedOptimizationPlan.length > 0 ? (
                   <Table>

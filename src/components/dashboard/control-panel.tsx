@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, PlayCircle, BrainCircuit, Mic, FileWarning } from "lucide-react";
+import { UploadCloud, PlayCircle, BrainCircuit, Mic, FileWarning, X } from "lucide-react";
 import { Textarea } from '@/components/ui/textarea';
 
 type ControlPanelProps = {
@@ -23,6 +23,10 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, loadingState 
     onRunOptimization(overrideText);
   };
 
+  const handleClearOverride = () => {
+    setOverrideText('');
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -31,7 +35,15 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, loadingState 
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <h3 className="text-sm font-medium flex items-center gap-2"><FileWarning className="w-4 h-4" />Manual Override</h3>
+           <div className="flex justify-between items-center">
+            <h3 className="text-sm font-medium flex items-center gap-2"><FileWarning className="w-4 h-4" />Manual Override</h3>
+            {overrideText && (
+              <Button variant="ghost" size="sm" onClick={handleClearOverride} className="flex items-center gap-1 text-xs h-auto px-2 py-1">
+                <X className="w-3 h-3" />
+                Clear
+              </Button>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">
             Provide critical ad-hoc information to the AI (e.g., track maintenance, VIP movement).
           </p>

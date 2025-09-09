@@ -18,6 +18,7 @@ export default function Home() {
   const [prediction, setPrediction] = useState(null);
   const [optimization, setOptimization] = useState<OptimizeTrainRoutesOutput | null>(null);
   const [isLoading, setIsLoading] = useState<LoadingState>(null);
+  const [activeOverride, setActiveOverride] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleRunPrediction = async () => {
@@ -45,6 +46,7 @@ export default function Home() {
   const handleRunOptimization = async (manualOverride?: string) => {
     setIsLoading('optimization');
     setOptimization(null);
+    setActiveOverride(manualOverride || null);
     try {
       const result = await optimizeTrainRoutes({
         stationLayout: JSON.stringify(stationLayoutData),
@@ -74,7 +76,12 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8">
             <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
               <Map />
-              <AIPanel isLoading={!!isLoading} predictionData={prediction} optimizationPlanData={optimization} />
+              <AIPanel 
+                isLoading={!!isLoading} 
+                predictionData={prediction} 
+                optimizationPlanData={optimization}
+                manualOverride={activeOverride}
+              />
             </div>
             <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
               <ControlPanel 
