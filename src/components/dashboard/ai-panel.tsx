@@ -53,14 +53,19 @@ function SafetyShieldStatus({ active }: { active: boolean }) {
 }
 
 export function AIPanel({ isLoading, predictionData, optimizationPlanData, manualOverride }: { isLoading: boolean, predictionData: any, optimizationPlanData: any, manualOverride: string | null }) {
-  const [currentOptimizationPlan, setCurrentOptimizationPlan] = useState(defaultOptimizationPlanData);
+  const [currentOptimizationPlan, setCurrentOptimizationPlan] = useState(null);
   const [currentPrediction, setCurrentPrediction] = useState(null);
   const [isClientLoading, setIsClientLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsClientLoading(false), 3500);
-    return () => clearTimeout(timer);
-  }, []);
+    // Simulate initial loading delay
+    if (!predictionData && !optimizationPlanData) {
+      const timer = setTimeout(() => setIsClientLoading(false), 3500);
+      return () => clearTimeout(timer);
+    } else {
+      setIsClientLoading(false);
+    }
+  }, [predictionData, optimizationPlanData]);
 
   useEffect(() => {
     if (optimizationPlanData) {
@@ -80,7 +85,9 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData, manua
 
   const sortedOptimizationPlan = useMemo(() => {
     if (!optimizationPlan) return [];
-    return [...optimizationPlan].sort((a, b) => a.start_time.localeCompare(b.start_time));
+    // Ensure we have a fresh copy to sort
+    const planToSort = JSON.parse(JSON.stringify(optimizationPlan));
+    return planToSort.sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
   }, [optimizationPlan]);
 
   return (
