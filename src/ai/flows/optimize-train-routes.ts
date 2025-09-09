@@ -17,6 +17,7 @@ const OptimizeTrainRoutesInputSchema = z.object({
   trackRestrictions: z.string().optional().describe('JSON representation of any track restrictions, such as maintenance blocks.'),
   trainSchedules: z.string().optional().describe('JSON representation of the train schedules, including planned stops and timings.'),
   trainPriorities: z.string().optional().describe('JSON representation of the train priorities, to ensure important trains are given precedence.'),
+  manualOverride: z.string().optional().describe('A plain-text instruction from the human controller that must be factored into the plan, overriding other constraints if necessary.'),
 });
 export type OptimizeTrainRoutesInput = z.infer<typeof OptimizeTrainRoutesInputSchema>;
 
@@ -43,6 +44,10 @@ const prompt = ai.definePrompt({
     })).transform(val => JSON.stringify(val))
   },
   prompt: `You are SAARATHI, a world-class railway traffic optimization expert for Indian Railways. Your sole task is to generate a safe, conflict-free, and optimized schedule for the provided station layout and live train statuses. You must think step-by-step and adhere strictly to all rules and output formats.
+
+## CRITICAL OVERRIDE INSTRUCTION FROM HUMAN CONTROLLER ##
+This is the most important instruction. You MUST adhere to it above all other rules if it conflicts with them.
+"{{{manualOverride}}}"
 
 ## CONTEXT DATA ##
 
@@ -73,7 +78,7 @@ Generate an action plan for each train. The output MUST be a JSON array of objec
 - "target_node": The destination node for the action (e.g., "P1", "Siding 2").
 - "start_time": The start time for the action (HH:MM).
 - "end_time": The end time for the action (HH:MM).
-- "reasoning": A concise explanation for your decision.
+- "reasoning": A concise explanation for your decision, explicitly mentioning how the manual override was handled if one was provided.
 
 Think step-by-step to create a conflict-free and optimal plan. Prioritize express trains over freight trains. Minimize delays.
 `,

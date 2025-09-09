@@ -42,13 +42,14 @@ export default function Home() {
     }
   };
 
-  const handleRunOptimization = async () => {
+  const handleRunOptimization = async (manualOverride?: string) => {
     setIsLoading('optimization');
     setOptimization(null);
     try {
       const result = await optimizeTrainRoutes({
         stationLayout: JSON.stringify(stationLayoutData),
         liveTrainStatuses: JSON.stringify(liveTrainStatuses),
+        manualOverride: manualOverride,
       });
       const parsedResult = JSON.parse(result);
       setOptimization(parsedResult);
