@@ -3,92 +3,125 @@ import { GaugeCircle, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 
 export const trainData = [
   {
-    id: "12859",
-    name: "Gitanjali Express",
+    id: "12417",
+    name: "Prayagraj Express",
     type: "Express",
     status: "On Time",
     statusIcon: CheckCircle,
     statusColor: "text-green-500",
-    location: "Track 4",
-    destination: "Platform 2",
-    eta: "10:45",
-    length_coaches: 22,
-    scheduled_halts: [{ "station": "HIJ", "platform": 2, "duration": 5 }]
+    location: "Ghaziabad Jn.",
+    destination: "NDLS P-3",
+    eta: "07:00",
+    length_coaches: 24,
+    scheduled_halts: [{ station: "NDLS", platform: 3, duration: 15 }]
   },
   {
-    id: "22895",
-    name: "Vande Bharat",
+    id: "12002",
+    name: "Shatabdi Express",
     type: "High-Speed",
     status: "Delayed",
     statusIcon: Clock,
     statusColor: "text-orange-500",
-    location: "Approach J2",
-    destination: "Platform 1",
-    eta: "10:55",
-    length_coaches: 16,
+    location: "Panipat Jn.",
+    destination: "NDLS P-1",
+    eta: "07:15",
+    length_coaches: 18,
     scheduled_halts: []
   },
   {
-    id: "08471",
-    name: "Goods Freight",
-    type: "Freight",
+    id: "04408",
+    name: "NZM-GZB MEMU",
+    type: "Local",
     status: "On Time",
     statusIcon: CheckCircle,
     statusColor: "text-green-500",
-    location: "Siding 1",
-    destination: "Yard",
-    eta: "11:10",
-    length_coaches: 50,
+    location: "Anand Vihar",
+    destination: "NDLS P-12",
+    eta: "07:05",
+    length_coaches: 12,
     scheduled_halts: []
   },
   {
-    id: "SHM-LTT-SPL",
-    name: "Special Cargo",
+    id: "FREIGHT-01",
+    name: "Container Goods",
     type: "Freight",
     status: "Halted",
     statusIcon: AlertTriangle,
     statusColor: "text-red-500",
-    location: "Signal S5",
-    destination: "Platform 4",
+    location: "Yard Line 5",
+    destination: "Tughlakabad",
     eta: "N/A",
-    length_coaches: 45,
+    length_coaches: 60,
     scheduled_halts: []
   },
+  {
+    id: "12951",
+    name: "Mumbai Rajdhani",
+    type: "Express",
+    status: "On Time",
+    statusIcon: CheckCircle,
+    statusColor: "text-green-500",
+    location: "Approaching Outer Signal",
+    destination: "NDLS P-2",
+    eta: "08:30",
+    length_coaches: 22,
+    scheduled_halts: [{ station: "NDLS", platform: 2, duration: 20 }]
+  }
 ];
 
 export type Train = (typeof trainData)[0];
 
 export const auditLogData = [
-    { id: 1, timestamp: "10:42:15", user: "System", event: "AI optimization request received." },
-    { id: 2, timestamp: "10:42:18", user: "SafetyShield", event: "Plan for 22895 validated: OK." },
-    { id: 3, timestamp: "10:42:19", user: "AI Engine", event: "Route optimized for Vande Bharat (22895) to P1." },
-    { id: 4, timestamp: "10:42:25", user: "Controller", event: "Plan for 22895 approved and executed." },
-    { id: 5, timestamp: "10:43:01", user: "System", event: "Traffic prediction model updated." },
+    { id: 1, timestamp: "06:55:10", user: "System", event: "AI optimization requested for morning peak hour." },
+    { id: 2, timestamp: "06:55:12", user: "AI Engine", event: "Analyzing 5 active trains and 16 platforms." },
+    { id: 3, timestamp: "06:55:15", user: "SafetyShield", event: "Conflict check for 12002 (Shatabdi) vs 04408 (MEMU) on crossover C1." },
+    { id: 4, timestamp: "06:55:18", user: "AI Engine", event: "Generated conflict-free plan for 5 trains." },
+    { id: 5, timestamp: "06:56:05", user: "Controller", event: "Plan for Prayagraj Express (12417) approved and executed." },
+    { id: 6, timestamp: "06:57:00", user: "System", event: "Real-time traffic data refreshed." },
 ];
+
 
 export type AuditLog = (typeof auditLogData)[0];
 
-export const optimizationPlanData = [
-    { train_id: "22895", action: "ASSIGN", target_node: "Platform 1 via T3, T5", start_time: "10:48", end_time: "10:55", reasoning: "Prioritized due to high-speed category." },
-    { train_id: "08471", action: "HOLD", target_node: "Siding 1", start_time: "10:48", end_time: "10:55", reasoning: "Waiting for Vande Bharat to clear crossover." },
-    { train_id: "12859", action: "PROCEED", target_node: "Depart on schedule", start_time: "10:50", end_time: "10:51", reasoning: "Path is clear, proceeding as scheduled." },
-];
+export const optimizationPlanData: OptimizationPlan[] = [];
 
-export type OptimizationPlan = (typeof optimizationPlanData)[0];
+export type OptimizationPlan = {
+  train_id: string;
+  action: "ASSIGN" | "HOLD" | "PROCEED";
+  target_node: string;
+  start_time: string;
+  end_time: string;
+  reasoning: string;
+};
 
 export const stationLayoutData = {
   "nodes": [
-    {"node_id": "ENTRY_A", "type": "ENTRY"},
-    {"node_id": "P1", "type": "PLATFORM", "length": 500},
-    {"node_id": "P2", "type": "PLATFORM", "length": 600},
+    {"node_id": "ENTRY_GZB", "type": "ENTRY"},
+    {"node_id": "ENTRY_PNP", "type": "ENTRY"},
+    {"node_id": "P1", "type": "PLATFORM", "length": 450},
+    {"node_id": "P2", "type": "PLATFORM", "length": 650},
+    {"node_id": "P3", "type": "PLATFORM", "length": 650},
+    {"node_id": "P4", "type": "PLATFORM", "length": 650},
+    {"node_id": "P12", "type": "PLATFORM", "length": 300},
     {"node_id": "S1", "type": "SIDELINE"},
-    {"node_id": "EXIT_B", "type": "EXIT"}
+    {"node_id": "S2", "type": "SIDELINE"},
+    {"node_id": "YARD1", "type": "YARD"},
+    {"node_id": "EXIT_MTJ", "type": "EXIT"},
+    {"node_id": "EXIT_ROK", "type": "EXIT"}
   ],
   "tracks": [
-    {"track_id": "T1", "from": "ENTRY_A", "to": "P1"},
-    {"track_id": "T2", "from": "ENTRY_A", "to": "P2"},
+    {"track_id": "T1A", "from": "ENTRY_PNP", "to": "P1"},
+    {"track_id": "T1B", "from": "ENTRY_PNP", "to": "P2"},
+    {"track_id": "T2A", "from": "ENTRY_GZB", "to": "P3"},
+    {"track_id": "T2B", "from": "ENTRY_GZB", "to": "P4"},
+    {"track_id": "T2C", "from": "ENTRY_GZB", "to": "P12"},
     {"track_id": "T3", "from": "P1", "to": "S1"},
-    {"track_id": "T4", "from": "P2", "to": "EXIT_B"},
-    {"track_id": "T5", "from": "S1", "to": "EXIT_B"}
+    {"track_id": "T4", "from": "P2", "to": "S1"},
+    {"track_id": "T5", "from": "P3", "to": "S2"},
+    {"track_id": "T6", "from": "P4", "to": "S2"},
+    {"track_id": "T7", "from": "S1", "to": "YARD1"},
+    {"track_id": "T8", "from": "S2", "to": "EXIT_MTJ"},
+    {"track_id": "T9", "from": "YARD1", "to": "EXIT_ROK"},
+    {"track_id": "T10_CROSS", "from": "S1", "to": "S2"}
   ]
 };
