@@ -12,7 +12,7 @@ export function Map() {
       const yBase = 155 + islandIndex * 35;
       return platformNumber % 2 === 0 ? yBase : yBase + 15;
     }
-    if (platformNumber === 16) return 155 + 7 * 35;
+    if (platformNumber === 16) return 155 + 7 * 35; // Position P16 below the last island.
     return 0;
   }
 
