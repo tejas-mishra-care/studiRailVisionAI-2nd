@@ -121,10 +121,10 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData }: { i
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {optimizationPlan.map((plan: any) => {
+                      {optimizationPlan.map((plan: any, index: number) => {
                         const Icon = actionIcons[plan.action] || Lightbulb;
                         return (
-                          <TableRow key={plan.train_id}>
+                          <TableRow key={`${plan.train_id}-${index}`}>
                             <TableCell className="font-medium">{plan.train_id}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
