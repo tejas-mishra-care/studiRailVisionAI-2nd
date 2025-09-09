@@ -12,6 +12,8 @@ export const trainData = [
     location: "Track 4",
     destination: "Platform 2",
     eta: "10:45",
+    length_coaches: 22,
+    scheduled_halts: [{ "station": "HIJ", "platform": 2, "duration": 5 }]
   },
   {
     id: "22895",
@@ -23,6 +25,8 @@ export const trainData = [
     location: "Approach J2",
     destination: "Platform 1",
     eta: "10:55",
+    length_coaches: 16,
+    scheduled_halts: []
   },
   {
     id: "08471",
@@ -34,6 +38,8 @@ export const trainData = [
     location: "Siding 1",
     destination: "Yard",
     eta: "11:10",
+    length_coaches: 50,
+    scheduled_halts: []
   },
   {
     id: "SHM-LTT-SPL",
@@ -45,6 +51,8 @@ export const trainData = [
     location: "Signal S5",
     destination: "Platform 4",
     eta: "N/A",
+    length_coaches: 45,
+    scheduled_halts: []
   },
 ];
 
@@ -60,23 +68,27 @@ export const auditLogData = [
 
 export type AuditLog = (typeof auditLogData)[0];
 
-export const predictionData = {
-    conflicts: [
-        { id: 1, type: "Crossing", severity: "Medium", time: "10:52", description: "Train 22895 path conflicts with 08471 departure." },
-        { id: 2, type: "Platform", severity: "Low", time: "11:05", description: "Platform 2 occupancy close to limit." },
-    ],
-    estimatedArrivals: [
-        { trainId: "22895", newEta: "10:58", reason: "Conflict resolution delay" },
-        { trainId: "08471", newEta: "11:12", reason: "Waiting for platform clearance" },
-    ]
-};
-
-export type Prediction = typeof predictionData;
-
 export const optimizationPlanData = [
-    { trainId: "22895", action: "ASSIGN", target: "Platform 1 via T3, T5", time: "10:48", icon: GaugeCircle },
-    { trainId: "08471", action: "HOLD", target: "Siding 1 until 10:55", time: "10:48", icon: AlertTriangle },
-    { trainId: "12859", action: "PROCEED", target: "Depart on schedule", time: "10:50", icon: CheckCircle },
+    { train_id: "22895", action: "ASSIGN", target_node: "Platform 1 via T3, T5", start_time: "10:48", end_time: "10:55", reasoning: "Prioritized due to high-speed category." },
+    { train_id: "08471", action: "HOLD", target_node: "Siding 1", start_time: "10:48", end_time: "10:55", reasoning: "Waiting for Vande Bharat to clear crossover." },
+    { train_id: "12859", action: "PROCEED", target_node: "Depart on schedule", start_time: "10:50", end_time: "10:51", reasoning: "Path is clear, proceeding as scheduled." },
 ];
 
 export type OptimizationPlan = (typeof optimizationPlanData)[0];
+
+export const stationLayoutData = {
+  "nodes": [
+    {"node_id": "ENTRY_A", "type": "ENTRY"},
+    {"node_id": "P1", "type": "PLATFORM", "length": 500},
+    {"node_id": "P2", "type": "PLATFORM", "length": 600},
+    {"node_id": "S1", "type": "SIDELINE"},
+    {"node_id": "EXIT_B", "type": "EXIT"}
+  ],
+  "tracks": [
+    {"track_id": "T1", "from": "ENTRY_A", "to": "P1"},
+    {"track_id": "T2", "from": "ENTRY_A", "to": "P2"},
+    {"track_id": "T3", "from": "P1", "to": "S1"},
+    {"track_id": "T4", "from": "P2", "to": "EXIT_B"},
+    {"track_id": "T5", "from": "S1", "to": "EXIT_B"}
+  ]
+};

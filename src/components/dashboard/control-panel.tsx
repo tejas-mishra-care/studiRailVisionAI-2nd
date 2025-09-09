@@ -2,7 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { UploadCloud, PlayCircle, BrainCircuit } from "lucide-react";
 
-export function ControlPanel() {
+type ControlPanelProps = {
+  onRunPrediction: () => void;
+  onRunOptimization: () => void;
+  isLoading: boolean;
+};
+
+export function ControlPanel({ onRunPrediction, onRunOptimization, isLoading }: ControlPanelProps) {
   return (
     <Card>
       <CardHeader>
@@ -19,13 +25,13 @@ export function ControlPanel() {
         </div>
         <div className="space-y-2">
           <h3 className="text-sm font-medium">AI Actions</h3>
-          <Button className="w-full justify-start gap-2 bg-primary/90 hover:bg-primary">
+          <Button className="w-full justify-start gap-2 bg-primary/90 hover:bg-primary" onClick={onRunPrediction} disabled={isLoading}>
             <BrainCircuit />
-            Run Traffic Prediction
+            {isLoading ? "Running..." : "Run Traffic Prediction"}
           </Button>
-          <Button className="w-full justify-start gap-2">
+          <Button className="w-full justify-start gap-2" onClick={onRunOptimization} disabled={isLoading}>
             <PlayCircle />
-            Optimize All Routes
+            {isLoading ? "Running..." : "Optimize All Routes"}
           </Button>
         </div>
       </CardContent>
