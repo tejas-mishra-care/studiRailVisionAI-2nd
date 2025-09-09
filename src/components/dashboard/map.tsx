@@ -1,11 +1,28 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrainFront, Signal, TrafficCone, ArrowRight, ArrowLeft } from "lucide-react";
+import { TrainFront, Signal, TrafficCone, ArrowRight, ArrowLeft, Clock } from "lucide-react";
 import { trainData } from "@/lib/data";
 
 export function Map() {
+  const [currentTime, setCurrentTime] = useState('');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }));
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
   
   const platformYPosition = (platformNumber: number): number => {
     if (platformNumber === 1) return 120;
@@ -53,13 +70,19 @@ export function Map() {
           <CardTitle>NDLS Digital Twin</CardTitle>
           <CardDescription>Live operational map of New Delhi Railway Station</CardDescription>
         </div>
-        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
-          <span className="relative flex h-2 w-2 mr-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          Live Feed
-        </Badge>
+        <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>{currentTime || "Loading..."}</span>
+            </div>
+            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+              <span className="relative flex h-2 w-2 mr-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Live Feed
+            </Badge>
+        </div>
       </CardHeader>
       <CardContent className="aspect-[2/1] w-full p-2 overflow-hidden rounded-lg bg-gray-800 dark:bg-gray-900">
         <svg width="100%" height="100%" viewBox="0 0 1000 500">
