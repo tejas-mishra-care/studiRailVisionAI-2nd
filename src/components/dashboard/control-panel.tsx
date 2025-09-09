@@ -5,10 +5,14 @@ import { UploadCloud, PlayCircle, BrainCircuit } from "lucide-react";
 type ControlPanelProps = {
   onRunPrediction: () => void;
   onRunOptimization: () => void;
-  isLoading: boolean;
+  loadingState: 'prediction' | 'optimization' | null;
 };
 
-export function ControlPanel({ onRunPrediction, onRunOptimization, isLoading }: ControlPanelProps) {
+export function ControlPanel({ onRunPrediction, onRunOptimization, loadingState }: ControlPanelProps) {
+  const isPredictionLoading = loadingState === 'prediction';
+  const isOptimizationLoading = loadingState === 'optimization';
+  const isAnyLoading = !!loadingState;
+
   return (
     <Card>
       <CardHeader>
@@ -18,20 +22,20 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, isLoading }: 
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Data Management</h3>
-          <Button variant="outline" className="w-full justify-start gap-2">
+          <Button variant="outline" className="w-full justify-start gap-2" disabled={isAnyLoading}>
             <UploadCloud />
             Import Static Data
           </Button>
         </div>
         <div className="space-y-2">
           <h3 className="text-sm font-medium">AI Actions</h3>
-          <Button className="w-full justify-start gap-2 bg-primary/90 hover:bg-primary" onClick={onRunPrediction} disabled={isLoading}>
+          <Button className="w-full justify-start gap-2 bg-primary/90 hover:bg-primary" onClick={onRunPrediction} disabled={isAnyLoading}>
             <BrainCircuit />
-            {isLoading ? "Running..." : "Run Traffic Prediction"}
+            {isPredictionLoading ? "Running Prediction..." : "Run Traffic Prediction"}
           </Button>
-          <Button className="w-full justify-start gap-2" onClick={onRunOptimization} disabled={isLoading}>
+          <Button className="w-full justify-start gap-2" onClick={onRunOptimization} disabled={isAnyLoading}>
             <PlayCircle />
-            {isLoading ? "Running..." : "Optimize All Routes"}
+            {isOptimizationLoading ? "Optimizing Routes..." : "Optimize All Routes"}
           </Button>
         </div>
       </CardContent>

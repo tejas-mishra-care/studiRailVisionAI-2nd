@@ -12,14 +12,16 @@ import { optimizeTrainRoutes } from "@/ai/flows/optimize-train-routes";
 import { stationLayoutData, trainData as liveTrainStatuses } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
+type LoadingState = 'prediction' | 'optimization' | null;
+
 export default function Home() {
   const [prediction, setPrediction] = useState(null);
   const [optimization, setOptimization] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<LoadingState>(null);
   const { toast } = useToast();
 
   const handleRunPrediction = async () => {
-    setIsLoading(true);
+    setIsLoading('prediction');
     setPrediction(null);
     try {
       const result = await predictFutureTraffic({
@@ -36,12 +38,12 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
   const handleRunOptimization = async () => {
-    setIsLoading(true);
+    setIsLoading('optimization');
     setOptimization(null);
     try {
       const result = await optimizeTrainRoutes({
@@ -58,7 +60,7 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
@@ -72,13 +74,13 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8">
             <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
               <Map />
-              <AIPanel isLoading={isLoading} predictionData={prediction} optimizationPlanData={optimization} />
+              <AIPanel isLoading={!!isLoading} predictionData={prediction} optimizationPlanData={optimization} />
             </div>
             <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
               <ControlPanel 
                 onRunPrediction={handleRunPrediction}
                 onRunOptimization={handleRunOptimization}
-                isLoading={isLoading}
+                loadingState={isLoading}
               />
               <LiveStatusPanel />
             </div>
