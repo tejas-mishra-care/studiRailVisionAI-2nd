@@ -21,7 +21,7 @@ import { TrainIcon } from "../icons/train-icon";
 
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "#", icon: BarChart2, label: "Analytics" },
+  { href: "/analytics", icon: BarChart2, label: "Analytics" },
   { href: "#", icon: Train, label: "Rolling Stock" },
   { href: "#", icon: ShieldCheck, label: "Safety Rules" },
   { href: "#", icon: History, label: "Audit Logs" },
