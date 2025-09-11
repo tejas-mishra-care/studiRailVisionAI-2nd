@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Map } from "@/components/dashboard/map";
@@ -18,10 +18,11 @@ import { useStation } from "@/context/station-context";
 
 type LoadingState = 'prediction' | 'optimization' | 'live_data' | null;
 
+const REFRESH_INTERVAL_SECONDS = 900; // 15 minutes
+
 // Helper to format scenario rules into a string for the AI
-const formatScenarioForAI = (rules: ScenarioRule[]): string => {
-  if (rules.length === 0) return '';
-  const descriptions = rules.map((rule, index) => {
+const formatScenarioForAI = (rules: ScenarioRule[], overrideText: string): string => {
+  const ruleDescriptions = rules.map((rule, index) => {
     let desc = `${index + 1}. Rule Type: ${rule.type}. `;
     switch (rule.type) {
       case 'PLATFORM_CLOSURE':
@@ -36,7 +37,16 @@ const formatScenarioForAI = (rules: ScenarioRule[]): string => {
     }
     return desc;
   });
-  return "Apply the following operational scenarios: " + descriptions.join(' ');
+
+  let combinedOverride = '';
+  if (ruleDescriptions.length > 0) {
+    combinedOverride += "Apply the following structured scenarios: " + ruleDescriptions.join(' ');
+  }
+  if (overrideText.trim()) {
+    if (combinedOverride) combinedOverride += ' \nAdditionally, apply this manual override: ';
+    combinedOverride += overrideText.trim();
+  }
+  return combinedOverride;
 };
 
 export default function Home() {
@@ -45,14 +55,19 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<LoadingState>('live_data');
   const [activeOverride, setActiveOverride] = useState<string | null>(null);
   const [liveTrainData, setLiveTrainData] = useState<LiveTrainStatus[]>([]);
+  const [countdown, setCountdown] = useState(REFRESH_INTERVAL_SECONDS);
   const { toast } = useToast();
   const { station } = useStation();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchLiveTrainData = useCallback(async () => {
-    // Don't set loading state if it's just a background refresh
-    if (isLoading !== 'optimization' && isLoading !== 'prediction') {
-        setIsLoading('live_data');
+  const fetchLiveTrainData = useCallback(async (isManualRefresh = false) => {
+    if (isLoading === 'optimization' || isLoading === 'prediction') return;
+
+    // Don't show skeleton on background refresh, only on initial load or manual refresh
+    if (liveTrainData.length === 0 || isManualRefresh) {
+      setIsLoading('live_data');
     }
+
     try {
       const data = await getLiveStationStatus(station.code);
       setLiveTrainData(data);
@@ -63,21 +78,45 @@ export default function Home() {
         description: "Could not connect to the live railway data feed.",
         variant: "destructive",
       });
-      // Fallback to empty array if API fails
       setLiveTrainData([]);
     } finally {
       setIsLoading(null);
+      setCountdown(REFRESH_INTERVAL_SECONDS);
     }
-  }, [toast, station.code, isLoading]);
+  }, [toast, station.code, isLoading, liveTrainData.length]);
 
-  useEffect(() => {
-    fetchLiveTrainData(); // Initial fetch
-  }, [station.code]); // Fetch on station change, but not on every render
 
+  // Effect for the main countdown timer
   useEffect(() => {
-    const interval = setInterval(fetchLiveTrainData, 900000); // Refresh every 15 minutes
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [fetchLiveTrainData]); // Re-create interval if fetch function changes
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    // Set up the new timer
+    timerRef.current = setInterval(() => {
+      setCountdown((prevCountdown) => {
+        if (prevCountdown <= 1) {
+          fetchLiveTrainData(); // This will also reset the countdown
+          return REFRESH_INTERVAL_SECONDS;
+        }
+        return prevCountdown - 1;
+      });
+    }, 1000);
+
+    // Cleanup on unmount
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [fetchLiveTrainData]); // Rerun when fetch function changes (e.g., station change)
+
+  // Effect for initial data load and station changes
+  useEffect(() => {
+    setIsLoading('live_data'); // Always show loading on station change
+    fetchLiveTrainData(true);
+  }, [station.code]); // Removed fetchLiveTrainData from deps to avoid loop
 
 
   const handleRunPrediction = async () => {
@@ -102,16 +141,19 @@ export default function Home() {
     }
   };
 
-  const handleRunOptimization = async (scenarioRules: ScenarioRule[]) => {
+  const handleRunOptimization = async (scenarioRules: ScenarioRule[], overrideText: string) => {
     setIsLoading('optimization');
     setOptimization(null);
-    const overrideText = formatScenarioForAI(scenarioRules);
-    setActiveOverride(overrideText || null);
+    const combinedOverride = formatScenarioForAI(scenarioRules, overrideText);
+    setActiveOverride(combinedOverride || null);
     try {
+      // Refresh data right before running optimization
+      await fetchLiveTrainData(true);
+      
       const result = await optimizeTrainRoutes({
         stationLayout: JSON.stringify(stationLayoutData),
         liveTrainStatuses: JSON.stringify(liveTrainData),
-        manualOverride: overrideText,
+        manualOverride: combinedOverride,
       });
       setOptimization(result);
     } catch (error) {
@@ -147,9 +189,10 @@ export default function Home() {
               <ControlPanel 
                 onRunPrediction={handleRunPrediction}
                 onRunOptimization={handleRunOptimization}
-                onRefreshData={fetchLiveTrainData}
+                onRefreshData={() => fetchLiveTrainData(true)}
                 loadingState={isLoading}
                 trainData={liveTrainData}
+                countdown={countdown}
               />
               {isLoading === 'live_data' ? <Skeleton className="h-96 w-full" /> : <LiveStatusPanel trainData={liveTrainData} />}
             </div>

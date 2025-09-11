@@ -5,12 +5,12 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayCircle, BrainCircuit, X, RefreshCw, PlusCircle, Train, Ban, Star, Clock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LiveTrainStatus } from '@/lib/railway-api';
+import { Textarea } from '@/components/ui/textarea';
 
 export type ScenarioRule = {
   id: string;
@@ -20,10 +20,11 @@ export type ScenarioRule = {
 
 type ControlPanelProps = {
   onRunPrediction: () => void;
-  onRunOptimization: (rules: ScenarioRule[]) => void;
+  onRunOptimization: (rules: ScenarioRule[], overrideText: string) => void;
   onRefreshData: () => void;
   loadingState: 'prediction' | 'optimization' | 'live_data' | null;
   trainData: LiveTrainStatus[];
+  countdown: number;
 };
 
 function AddRuleDialog({ onAddRule, trains }: { onAddRule: (rule: ScenarioRule) => void, trains: LiveTrainStatus[] }) {
@@ -140,8 +141,9 @@ const getRuleDescription = (rule: ScenarioRule): string => {
 };
 
 
-export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData, loadingState, trainData }: ControlPanelProps) {
+export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData, loadingState, trainData, countdown }: ControlPanelProps) {
   const [scenarioRules, setScenarioRules] = useState<ScenarioRule[]>([]);
+  const [overrideText, setOverrideText] = useState('');
   
   const isPredictionLoading = loadingState === 'prediction';
   const isOptimizationLoading = loadingState === 'optimization';
@@ -149,7 +151,7 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
   const isAnyLoading = !!loadingState;
 
   const handleOptimizationClick = () => {
-    onRunOptimization(scenarioRules);
+    onRunOptimization(scenarioRules, overrideText);
   };
   
   const addRule = (rule: ScenarioRule) => {
@@ -160,6 +162,12 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
     setScenarioRules(prev => prev.filter(rule => rule.id !== id));
   }
 
+  const formatCountdown = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -168,10 +176,13 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data Management</h3>
+          <div className="flex justify-between items-center text-sm font-medium">
+            <h3>Data Management</h3>
+            <span className="text-muted-foreground text-xs">Next refresh in: {formatCountdown(countdown)}</span>
+          </div>
           <Button variant="outline" className="w-full justify-start gap-2" onClick={onRefreshData} disabled={isAnyLoading}>
             <RefreshCw className={isDataLoading ? "animate-spin" : ""} />
-            {isDataLoading ? "Refreshing Live Data..." : "Refresh Live Data"}
+            {isDataLoading ? "Refreshing Live Data..." : "Refresh Live Data Now"}
           </Button>
         </div>
         
@@ -181,7 +192,7 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
             {scenarioRules.length > 0 && (
               <Button variant="ghost" size="sm" onClick={() => setScenarioRules([])} className="flex items-center gap-1 text-xs h-auto px-2 py-1">
                 <X className="w-3 h-3" />
-                Clear All
+                Clear Rules
               </Button>
             )}
           </div>
@@ -197,8 +208,26 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
                  </Button>
                </div>
             ))}
+             <AddRuleDialog onAddRule={addRule} trains={trainData} />
           </div>
-          <AddRuleDialog onAddRule={addRule} trains={trainData} />
+        </div>
+
+        <div className="space-y-2">
+            <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium">Manual Override</h3>
+                {overrideText && (
+                    <Button variant="ghost" size="sm" onClick={() => setOverrideText('')} className="flex items-center gap-1 text-xs h-auto px-2 py-1">
+                        <X className="w-3 h-3" />
+                        Clear
+                    </Button>
+                )}
+            </div>
+            <Textarea 
+                placeholder="Enter any specific, overriding instructions for the AI. E.g., 'VIP movement on Line 3, clear all traffic.'"
+                value={overrideText}
+                onChange={(e) => setOverrideText(e.target.value)}
+                rows={3}
+            />
         </div>
 
         <div className="space-y-2 pt-2">
