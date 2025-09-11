@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Map } from "@/components/dashboard/map";
-import { ControlPanel } from "@/components/dashboard/control-panel";
+import { ControlPanel, ScenarioRule } from "@/components/dashboard/control-panel";
 import { LiveStatusPanel } from "@/components/dashboard/live-status-panel";
 import { AIPanel } from "@/components/dashboard/ai-panel";
 import { predictFutureTraffic } from "@/ai/flows/predict-future-traffic";
@@ -17,6 +17,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useStation } from "@/context/station-context";
 
 type LoadingState = 'prediction' | 'optimization' | 'live_data' | null;
+
+// Helper to format scenario rules into a string for the AI
+const formatScenarioForAI = (rules: ScenarioRule[]): string => {
+  if (rules.length === 0) return '';
+  const descriptions = rules.map((rule, index) => {
+    let desc = `${index + 1}. Rule Type: ${rule.type}. `;
+    switch (rule.type) {
+      case 'PLATFORM_CLOSURE':
+        desc += `Platform ${rule.details.platform} is closed from ${rule.details.startTime} to ${rule.details.endTime}.`;
+        break;
+      case 'ADD_DELAY':
+        desc += `Train ${rule.details.trainId} is delayed by an additional ${rule.details.delayMinutes} minutes.`;
+        break;
+      case 'PRIORITIZE_TRAIN':
+        desc += `Train ${rule.details.trainId} must be given top priority.`;
+        break;
+    }
+    return desc;
+  });
+  return "Apply the following operational scenarios: " + descriptions.join(' ');
+};
 
 export default function Home() {
   const [prediction, setPrediction] = useState(null);
@@ -74,15 +95,16 @@ export default function Home() {
     }
   };
 
-  const handleRunOptimization = async (manualOverride?: string) => {
+  const handleRunOptimization = async (scenarioRules: ScenarioRule[]) => {
     setIsLoading('optimization');
     setOptimization(null);
-    setActiveOverride(manualOverride || null);
+    const overrideText = formatScenarioForAI(scenarioRules);
+    setActiveOverride(overrideText || null);
     try {
       const result = await optimizeTrainRoutes({
         stationLayout: JSON.stringify(stationLayoutData),
         liveTrainStatuses: JSON.stringify(liveTrainData),
-        manualOverride: manualOverride,
+        manualOverride: overrideText,
       });
       setOptimization(result);
     } catch (error) {
@@ -120,6 +142,7 @@ export default function Home() {
                 onRunOptimization={handleRunOptimization}
                 onRefreshData={fetchLiveTrainData}
                 loadingState={isLoading}
+                trainData={liveTrainData}
               />
               {isLoading === 'live_data' ? <Skeleton className="h-96 w-full" /> : <LiveStatusPanel trainData={liveTrainData} />}
             </div>

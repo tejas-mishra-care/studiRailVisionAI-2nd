@@ -30,6 +30,10 @@ export function StationSwitcher() {
   const [open, setOpen] = React.useState(false)
   const { station, setStation } = useStation()
 
+  const selectedStation = React.useMemo(() => {
+    return stationList.find((s) => s.code === station.code);
+  }, [station.code]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -39,9 +43,7 @@ export function StationSwitcher() {
           aria-expanded={open}
           className="w-[250px] justify-between"
         >
-          {station
-            ? stationList.find((s) => s.code === station.code)?.name
-            : "Select station..."}
+          {selectedStation ? `${selectedStation.name} (${selectedStation.code})` : "Select station..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </DialogTrigger>
