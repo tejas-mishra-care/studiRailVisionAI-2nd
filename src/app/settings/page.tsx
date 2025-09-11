@@ -16,9 +16,20 @@ import { useStation } from "@/context/station-context";
 import { UploadCloud } from "lucide-react";
 import { StationSwitcher } from "@/components/dashboard/station-switcher";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { stationList } from "@/lib/stations";
 
 export default function SettingsPage() {
   const { station } = useStation();
+  const { toast } = useToast();
+  const stationDetails = stationList.find(s => s.code === station.code);
+
+  const handleImportClick = () => {
+    toast({
+      title: "Feature In Development",
+      description: "Custom station data import is not yet available.",
+    });
+  };
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground">
@@ -42,14 +53,25 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="current-station">Current Active Station</Label>
-                  <Input
-                    id="current-station"
-                    readOnly
-                    value={`${station.name} (${station.code})`}
-                    className="font-semibold"
-                  />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-station">Current Station</Label>
+                    <Input
+                      id="current-station"
+                      readOnly
+                      value={`${stationDetails?.name} (${stationDetails?.code})`}
+                      className="font-semibold"
+                    />
+                  </div>
+                   <div className="space-y-2">
+                    <Label htmlFor="current-zone">Railway Zone</Label>
+                    <Input
+                      id="current-zone"
+                      readOnly
+                      value={stationDetails?.zone || 'N/A'}
+                      className="font-semibold"
+                    />
+                  </div>
                 </div>
                 <StationSwitcher />
               </CardContent>
@@ -65,7 +87,7 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full justify-start gap-2">
+                <Button variant="outline" className="w-full justify-start gap-2" onClick={handleImportClick}>
                   <UploadCloud />
                   Import Station Layout Data
                 </Button>

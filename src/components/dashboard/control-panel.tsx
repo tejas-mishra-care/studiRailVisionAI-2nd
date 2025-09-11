@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { UploadCloud, PlayCircle, BrainCircuit, Mic, FileWarning, X, RefreshCw } from "lucide-react";
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from "@/hooks/use-toast";
 
 type ControlPanelProps = {
   onRunPrediction: () => void;
@@ -16,6 +17,7 @@ type ControlPanelProps = {
 
 export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData, loadingState }: ControlPanelProps) {
   const [overrideText, setOverrideText] = useState('');
+  const { toast } = useToast();
   const isPredictionLoading = loadingState === 'prediction';
   const isOptimizationLoading = loadingState === 'optimization';
   const isDataLoading = loadingState === 'live_data';
@@ -28,6 +30,13 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
   const handleClearOverride = () => {
     setOverrideText('');
   }
+
+  const handleImportClick = () => {
+    toast({
+      title: "Feature In Development",
+      description: "Custom station data import is not yet available.",
+    });
+  };
 
   return (
     <Card>
@@ -74,7 +83,7 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData
             <RefreshCw className={isDataLoading ? "animate-spin" : ""} />
             {isDataLoading ? "Refreshing Live Data..." : "Refresh Live Data"}
           </Button>
-          <Button variant="outline" className="w-full justify-start gap-2" disabled={isAnyLoading}>
+          <Button variant="outline" className="w-full justify-start gap-2" onClick={handleImportClick} disabled={isAnyLoading}>
             <UploadCloud />
             Import Static Data
           </Button>
