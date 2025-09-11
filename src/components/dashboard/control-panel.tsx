@@ -4,19 +4,21 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, PlayCircle, BrainCircuit, Mic, FileWarning, X } from "lucide-react";
+import { UploadCloud, PlayCircle, BrainCircuit, Mic, FileWarning, X, RefreshCw } from "lucide-react";
 import { Textarea } from '@/components/ui/textarea';
 
 type ControlPanelProps = {
   onRunPrediction: () => void;
   onRunOptimization: (manualOverride?: string) => void;
-  loadingState: 'prediction' | 'optimization' | null;
+  onRefreshData: () => void;
+  loadingState: 'prediction' | 'optimization' | 'live_data' | null;
 };
 
-export function ControlPanel({ onRunPrediction, onRunOptimization, loadingState }: ControlPanelProps) {
+export function ControlPanel({ onRunPrediction, onRunOptimization, onRefreshData, loadingState }: ControlPanelProps) {
   const [overrideText, setOverrideText] = useState('');
   const isPredictionLoading = loadingState === 'prediction';
   const isOptimizationLoading = loadingState === 'optimization';
+  const isDataLoading = loadingState === 'live_data';
   const isAnyLoading = !!loadingState;
 
   const handleOptimizationClick = () => {
@@ -68,6 +70,10 @@ export function ControlPanel({ onRunPrediction, onRunOptimization, loadingState 
         </div>
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Data Management</h3>
+          <Button variant="outline" className="w-full justify-start gap-2" onClick={onRefreshData} disabled={isAnyLoading}>
+            <RefreshCw className={isDataLoading ? "animate-spin" : ""} />
+            {isDataLoading ? "Refreshing Live Data..." : "Refresh Live Data"}
+          </Button>
           <Button variant="outline" className="w-full justify-start gap-2" disabled={isAnyLoading}>
             <UploadCloud />
             Import Static Data

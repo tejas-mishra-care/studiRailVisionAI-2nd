@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrainFront, Signal, TrafficCone, ArrowRight, ArrowLeft, Clock } from "lucide-react";
-import { trainData } from "@/lib/data";
+import type { LiveTrainStatus } from '@/lib/railway-api';
 
-export function Map() {
+export function Map({ trainData }: { trainData: LiveTrainStatus[] }) {
   const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
@@ -36,27 +36,23 @@ export function Map() {
   }
 
   // A helper to place trains on the map based on their status
-  const getTrainPosition = (train: typeof trainData[0]): { x: number, y: number, color: string, direction: 'in' | 'out' | 'none', destinationText: string } => {
+  const getTrainPosition = (train: LiveTrainStatus): { x: number, y: number, color: string, direction: 'in' | 'out' | 'none', destinationText: string } => {
     const defaultPosition = { x: 50, y: 50, color: "text-gray-400", direction: 'none', destinationText: train.destination };
-    const platformMatch = train.destination.match(/NDLS P-(\d+)/);
-    const locationMatch = train.location.match(/NDLS P-(\d+)/);
-
-    if (train.location.includes("Departed")) {
-       const departedPlatform = parseInt(locationMatch?.[1] || '16', 10);
-       return { x: 800, y: platformYPosition(departedPlatform) - 10, color: "text-green-500", direction: 'out', destinationText: `To ${train.destination}` };
+    const platformNumber = train.platform_number ? parseInt(train.platform_number, 10) : 0;
+    
+    if (train.event_type === 'DEPARTURE' && train.status.includes("Departed")) {
+       return { x: 800, y: platformYPosition(platformNumber) - 10, color: "text-green-500", direction: 'out', destinationText: `To ${train.destination}` };
     }
-    if (train.location.includes("Approaching")) {
-       return { x: 180, y: 80, color: "text-orange-500", direction: 'in', destinationText: `To ${train.destination}` };
+    if (train.status.includes("Approaching")) {
+       return { x: 180, y: 80, color: "text-orange-500", direction: 'in', destinationText: `To P-${platformNumber}` };
     }
-    if (train.location.includes("Yard")) {
+    if (train.last_location.includes("Yard")) {
        return { x: 650, y: 45, color: "text-gray-500", direction: 'none', destinationText: "Yard/Stabling" };
     }
-    if (locationMatch) { // Train is AT a platform
-        const platformNumber = parseInt(locationMatch[1], 10);
+    if (train.event_type === 'ARRIVAL' && train.status === 'On Time' && platformNumber > 0) { // Train is AT a platform
         return { x: 450, y: platformYPosition(platformNumber) - 10, color: "text-blue-500", direction: 'none', destinationText: `At P-${platformNumber}` };
     }
-     if (platformMatch) { // Train is assigned to a platform but not there yet
-      const platformNumber = parseInt(platformMatch[1], 10);
+     if (train.event_type === 'ARRIVAL' && platformNumber > 0) { // Train is assigned to a platform but not there yet
       return { x: 250, y: platformYPosition(platformNumber) - 10, color: "text-yellow-500", direction: 'in', destinationText: `To P-${platformNumber}` };
     }
     
