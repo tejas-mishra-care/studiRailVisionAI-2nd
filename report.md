@@ -1,3 +1,4 @@
+
 # RailVision AI - Project Report
 
 This document provides a comprehensive overview of the RailVision AI application, its features, and its technical architecture. It is a living document that will be updated as the project evolves.
@@ -22,7 +23,7 @@ The application is built as a web-based platform that visualizes a live "digital
 - **Technical Implementation:**
     - The `LiveStatusPanel` component (`src/components/dashboard/live-status-panel.tsx`) displays the data.
     - Data is fetched from the RailRadar API via the `getLiveStationStatus` function in `src/lib/railway-api.ts`.
-    - The dashboard automatically refreshes this data every 5 minutes and includes a manual refresh button.
+    - The dashboard automatically refreshes this data every 15 minutes and includes a manual refresh button.
 
 ### 2.3. AI-Powered Route Optimization
 - **Description:** The core feature where the AI engine generates a safe, conflict-free, and efficient action plan for all trains. The plan is presented as a chronological list of actions (Assign, Hold, Proceed) with clear reasoning.

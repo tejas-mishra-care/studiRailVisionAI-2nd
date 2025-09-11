@@ -1,3 +1,6 @@
+
+"use client"
+
 import Link from "next/link";
 import {
   Bell,
@@ -15,8 +18,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TrainIcon } from "../icons/train-icon";
+import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
+  const { toast } = useToast();
+
+  const handleFeatureClick = (featureName: string) => {
+    toast({
+      title: "Feature In Development",
+      description: `${featureName} is not yet available.`,
+    });
+  };
+
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
       <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -48,10 +61,12 @@ export function Header() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleFeatureClick('Support')}>Support</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleFeatureClick('Logout')}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

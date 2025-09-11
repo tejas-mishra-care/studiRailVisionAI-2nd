@@ -1,3 +1,4 @@
+
 # Master Technical Specification Report
 
 This document provides an exhaustive technical specification for the **RailVision AI** web application. It is intended to serve as a complete blueprint for developers to understand, maintain, and extend the application, including creating a 1-to-1, pixel-perfect replica as a cross-platform desktop app.
@@ -18,10 +19,12 @@ The primary users are **Railway Traffic Controllers** and **Operations Managers*
 *   **Live Status Monitoring:** A real-time feed displaying the status, location, and ETA of all active trains in the station's vicinity.
 *   **AI-Powered Traffic Prediction:** An AI flow that analyzes current data to forecast potential future conflicts (e.g., crossing, platform contention).
 *   **Intelligent Route Optimization:** A core AI flow that generates a safe, conflict-free, and efficient action plan for all trains, considering schedules, priorities, and physical constraints. The plan is sorted chronologically and includes delay impact analysis.
-*   **Manual Override:** A critical human-in-the-loop feature allowing controllers to input ad-hoc text instructions (e.g., track maintenance, emergencies) that the AI must incorporate into its planning as a strict, overriding constraint.
+*   **Manual Override & Scenario Builder:** A critical human-in-the-loop feature allowing controllers to input ad-hoc text instructions and structured rules (e.g., platform closures) that the AI must incorporate into its planning as strict, overriding constraints.
+*   **Dynamic Station Switching:** The ability to change the application's focus to any major supported railway station, updating all live data feeds and map visuals accordingly.
 *   **Deterministic Safety Shield:** A simulated validation layer that verifies AI-generated plans against hard-coded safety rules before they are presented to the user.
 *   **AI Recommendation Audit Trail:** A log that provides transparency into the system's actions, AI decisions, and controller inputs.
 *   **Analytics Dashboard:** A dedicated page visualizing Key Performance Indicators (KPIs) like overall punctuality, average delay, and historical on-time vs. delayed performance.
+*   **Automatic Data Refresh:** Live data is automatically refreshed every 15 minutes, with a visual countdown timer and a manual override button.
 
 ## Section 2: Complete Technology Stack
 
@@ -33,17 +36,19 @@ The primary users are **Railway Traffic Controllers** and **Operations Managers*
 *   **UI Components:** shadcn/ui (a collection of re-usable components built with Radix UI and Tailwind CSS).
 *   **Charting:** `recharts` 2.15.1 for bar charts on the analytics page.
 *   **Icons:** `lucide-react` 0.475.0 for most icons, with a custom SVG for the main `TrainIcon`.
-*   **State Management:** Primarily React Hooks (`useState`, `useEffect`, `useMemo`). Global state is managed at the root page components (`src/app/page.tsx`, `src/app/analytics/page.tsx`).
-*   **Toast Notifications:** Custom hook (`useToast`) for displaying user feedback.
+*   **State Management:**
+    *   **Local State:** Primarily React Hooks (`useState`, `useEffect`, `useMemo`).
+    *   **Global State:** React Context (`StationProvider` in `src/context/station-context.tsx`) for managing the currently active station across all components.
+*   **Toast Notifications:** Custom hook (`useToast`) for displaying user feedback, especially for API errors.
 
 ### Backend (AI & Server-side Logic):
 *   **AI Toolkit:** Genkit 1.14.1
 *   **AI Model Provider:** `@genkit-ai/googleai` 1.14.1, utilizing the 'gemini-2.5-flash' model by default.
 *   **Server Environment:** Next.js Server Actions and Route Handlers. AI flows are defined as server-side functions.
-*   **Data:** All application data (trains, station layout, etc.) is currently mocked and stored in `src/lib/data.ts`.
 
 ### APIs:
-*   The application does not use any third-party APIs for its core functionality. It operates as a self-contained simulation.
+*   **Live Data Source:** A custom service (`src/lib/railway-api.ts`) designed to integrate with the **RailRadar API** (fictional). It fetches live station data and transforms it for the application. It includes a fallback to mock data if the API key is not present.
+*   **API Key Management:** The API key is securely managed using environment variables (`.env` file).
 
 ## Section 3: Granular Frontend UI/UX Specification
 
@@ -86,130 +91,89 @@ The visual identity is defined in `src/app/globals.css` using HSL CSS variables 
 
 *   **Icons:** All icons are from `lucide-react` unless specified otherwise.
     *   **`TrainIcon`**: A custom SVG component. Location: `src/components/icons/train-icon.tsx`.
-        ```xml
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 4h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4Z" />
-          <path d="M4 15h16" />
-          <path d="M12 4v11" />
-          <path d="M6 15h.01" />
-          <path d="M18 15h.01" />
-          <path d="M8 19h8" />
-          <path d="M10 15v4" />
-          <path d="M14 15v4" />
-        </svg>
-        ```
-    *   Other icons used: `LayoutDashboard`, `BarChart2`, `Settings`, `ShieldCheck`, `History`, `Train`, `Bell`, `Search`, `UserCircle`, `UploadCloud`, `PlayCircle`, `BrainCircuit`, `Mic`, `FileWarning`, `X`, `AlertTriangle`, `Lightbulb`, `CheckCircle`, `GaugeCircle`, `Clock`, `TrainFront`, `Signal`, `TrafficCone`, `ArrowRight`, `ArrowLeft`, `Users`, `Calendar`. Their placement is detailed in the component breakdown.
-
-*   **Images & Media:** The application currently uses no external raster images or media. The map and charts are pure SVG renders.
+    *   Other icons used: `LayoutDashboard`, `BarChart2`, `Settings`, `ShieldCheck`, `History`, `Train`, `Bell`, `Search`, `UserCircle`, `UploadCloud`, `PlayCircle`, `BrainCircuit`, `Mic`, `FileWarning`, `X`, `AlertTriangle`, `Lightbulb`, `CheckCircle`, `GaugeCircle`, `Clock`, `TrainFront`, `Signal`, `TrafficCone`, `ArrowRight`, `ArrowLeft`, `Users`, `Calendar`, `PlusCircle`, `Ban`, `Star`, `RefreshCw`. Their placement is detailed in the component breakdown.
 
 ### 3.3. Component-by-Component Breakdown:
-
-This section details the custom-composed components in the `src/components/dashboard` directory and the new `AnalyticsPage`.
 
 #### `Header` (`src/components/dashboard/header.tsx`)
 *   **Visuals**: A `h-14` (56px) flexible row with a bottom border. Uses `bg-card` color.
 *   **Placement**: Fixed at the top of the main content area in all pages.
-*   **Content**: Contains the App Logo/Title (`TrainIcon` + "RailVision AI"), a search input, a notification bell button, and a user profile dropdown.
+*   **Content**: Contains the App Logo/Title, a search input, a notification bell, and a user profile dropdown.
+*   **Behavior**: The user profile dropdown now links to `/settings` and provides toast notifications for "Support" and "Logout".
 
 #### `Sidebar` (`src/components/dashboard/sidebar.tsx`)
 *   **Visuals**: `w-16` (64px) fixed vertical bar on the left with a right border. `bg-card` color.
 *   **Placement**: Fixed to the far left of the viewport on screens wider than `sm`.
-*   **Content**: Contains the app icon at the top, followed by a vertical list of navigation icons (`Dashboard`, `Analytics`, etc.).
-*   **Behavior**: Uses `TooltipProvider` to show the label for each icon on hover. The active link is highlighted with `bg-accent` based on the current URL pathname.
+*   **Content**: Vertical list of navigation icons (`Dashboard`, `Analytics`, `Rolling Stock`, `Safety Rules`, `Audit Trail`, `Settings`).
+*   **Behavior**: Active link is highlighted with `bg-accent`. All links now point to their respective pages.
 
 #### `Map` (`src/components/dashboard/map.tsx`)
-*   **Visuals**: A large card containing an SVG element. The SVG has a dark background (`bg-gray-800`) with a light grid pattern.
-*   **Placement**: Top-left of the main dashboard grid.
 *   **Behavior**:
-    *   **Live Clock**: A `<span>` in the header is updated every second with the current system time using `new Date().toLocaleTimeString()`. This is handled client-side to prevent hydration errors.
-    *   **Dynamic Trains**: Train icons (`TrainFront`) are dynamically positioned on the SVG canvas based on their `location` string.
-    *   **Directional Info**: An arrow icon (`ArrowRight`) and a destination text label are rendered next to each train.
+    *   **Dynamic Title**: The map title and description now update dynamically based on the active station from `StationContext`.
+    *   **Live Clock**: A `<span>` in the header is updated every second with the current system time.
+    *   **Intelligent Train Positioning**: The `getTrainPosition` function has been enhanced to accurately place trains based on their live status (`Approaching`, `Halted`, `Departed`), `event_type`, and `platform_number`.
 
 #### `ControlPanel` (`src/components/dashboard/control-panel.tsx`)
-*   **Visuals**: A standard card.
-*   **Placement**: Top-right of the main dashboard grid.
+*   **Visuals**: A standard card containing data refresh controls and AI triggers.
 *   **Content**:
-    *   **Manual Override**: A `Textarea` for user input. A "Clear" button (`X` icon) appears when text is present.
-    *   **AI Actions**: Buttons for "Run Traffic Prediction" and "Optimize All Routes".
+    *   **Data Management**: A "Refresh Live Data" button and a **countdown timer** showing the time until the next automatic 15-minute refresh.
+    *   **Scenario Builder**: A system for adding structured rules like "Platform Closure", "Add Delay", or "Prioritize Train".
+    *   **Manual Override**: A `Textarea` for free-form user instructions that work in tandem with the structured rules.
+    *   **AI Actions**: Buttons for "Optimize All Routes" and "Run Traffic Prediction".
 *   **Behavior**:
-    *   Buttons are disabled when an AI action is in progress, with specific loading text for each button.
-    *   The "Optimize All Routes" button triggers optimization, passing the current text from the `Textarea`.
-    *   The "Clear" button resets the `overrideText` state.
-
-#### `LiveStatusPanel` (`src/components/dashboard/live-status-panel.tsx`)
-*   **Visuals**: A card containing a `Table`.
-*   **Placement**: Below the `ControlPanel` on the dashboard.
-*   **Content**: A table listing live trains from `trainData`. Columns: Train, Status, Location, ETA.
+    *   Buttons are disabled when an AI action or data refresh is in progress.
+    *   The countdown timer resets whenever data is fetched.
+    *   "Optimize All Routes" combines structured rules and manual override text into a single prompt for the AI.
 
 #### `AIPanel` (`src/components/dashboard/ai-panel.tsx`)
-*   **Visuals**: A large card containing a `Tabs` component.
-*   **Placement**: Below the `Map` on the dashboard.
-*   **Content**:
-    *   **Tabs**: "Optimization", "Prediction", "Audit Trail".
-    *   **Optimization Tab**: Displays the AI-generated action plan in a `Table`, sorted chronologically by `start_time`. Columns: Time, Train, Action, Target, Impact, Reasoning.
-    *   **Prediction Tab**: Shows potential conflicts in an `Alert` component.
 *   **Behavior**:
-    *   When `isLoading` is true, `Skeleton` components are shown.
-    *   If a `manualOverride` is passed, a warning `Alert` is displayed showing the override text.
-    *   Action icons (`GaugeCircle`, `AlertTriangle`, `CheckCircle`) and Impact badges (`On Time`, `X min`) are dynamically rendered.
+    *   When an optimization is run with a `manualOverride`, a prominent yellow warning `Alert` is displayed showing the override text that was used for the plan.
+    *   A `SafetyShieldStatus` component simulates the AI's validation process, providing a better UX.
 
-#### `AnalyticsPage` (`src/app/analytics/page.tsx`)
-*   **Visuals**: A full-page component within the standard Sidebar/Header layout.
-*   **Placement**: Accessible via the `/analytics` route.
+#### `SettingsPage` (`src/app/settings/page.tsx`)
+*   **Placement**: Accessible via the `/settings` route.
 *   **Content**:
-    *   **KPI Cards**: Four `Card` components at the top displaying key metrics: Overall Punctuality (92.5%), Average Delay (4.8 min), Section Throughput (1,254 Trains), and Platform Utilization (78%).
-    *   **Punctuality Chart**: A large `Card` containing a `RechartsBarChart` that visualizes "On Time" vs. "Delayed" trains over the last 6 months.
-*   **Behavior**: The page is currently static, using mocked data for the KPIs and chart. It is designed to be connected to a live data source.
+    *   **Station Configuration**: Displays the currently active station's name, code, and **railway zone**.
+    *   **Station Switcher**: A `StationSwitcher` component that opens a dialog, allowing the user to search for and select a new active station from a predefined list.
+    *   **Static Data Management**: A button to import station layout data (currently shows a "feature in development" toast).
 
 ## Section 4: Detailed Frontend Functionality & User Flows
 
-### Main User Flow: Running an Optimization with Manual Override
+### Main User Flow: Switching Stations and Running Optimization
 
-1.  **Initial State**: The user sees the main dashboard. The "AI Operations Console" is empty.
-2.  **Input Override**: The user types a specific instruction into the "Manual Override" `Textarea`. Example: "Platform 2 is closed for cleaning."
-3.  **Trigger AI**: The user clicks the "Optimize All Routes" button.
-4.  **State Change**:
-    *   The `handleRunOptimization` function is called in `src/app/page.tsx`.
-    *   The `isLoading` state is set to `'optimization'`. This disables the action buttons and shows "Optimizing Routes..." on the button.
-    *   `AIPanel` receives `isLoading=true` and displays skeleton loaders.
-5.  **Backend Call**: The `optimizeTrainRoutes` server function is called with station layout, train statuses, and the `manualOverride` string.
-6.  **AI Processing**:
-    *   Inside the `optimizeTrainRoutes` flow, a detailed prompt instructs the AI to treat the `manualOverride` as a new, absolute constraint.
-    *   A call is made to the Gemini model via Genkit.
-7.  **Response Handling**:
-    *   `handleRunOptimization` receives the array of plan objects.
-    *   On success, the `optimization` state is updated with the result.
-    *   The `isLoading` state is set back to `null`.
-    *   On error, a `Toast` notification appears.
-8.  **UI Update**:
-    *   The `AIPanel` receives the new `optimizationPlanData`.
-    *   It sorts the data by `start_time` and renders the full action plan.
-    *   The yellow `Alert` box is displayed showing the override text that was used.
-    *   The buttons in the `ControlPanel` are re-enabled.
+1.  **Initial State**: The user sees the main dashboard for "New Delhi" (`NDLS`). Live data is displayed.
+2.  **Navigate to Settings**: The user clicks the `Settings` icon in the sidebar.
+3.  **Change Station**:
+    *   The user clicks the "Change Station" button, which opens the `StationSwitcher` dialog.
+    *   The user searches for and selects "Mumbai Central" (`MMCT`).
+    *   The `setStation` function from `StationContext` is called, updating the global state.
+4.  **Automatic Update**:
+    *   The user navigates back to the main dashboard.
+    *   A `useEffect` hook in `src/app/page.tsx` detects the change in `station.code`.
+    *   It immediately triggers `fetchLiveTrainData(true)`, now calling the API for station `MMCT`.
+    *   Skeleton loaders are shown while the new data is fetched.
+5.  **UI Re-renders**:
+    *   The `Map` component's title changes to "MMCT Digital Twin".
+    *   The `LiveStatusPanel` and `Map` re-render with the live train data for Mumbai Central.
+6.  **Run Optimization**:
+    *   The user types "Platform 5 is reserved for a VIP train" into the "Manual Override" `Textarea`.
+    *   The user clicks "Optimize All Routes".
+7.  **Backend Call**: The `optimizeTrainRoutes` server function is called with the live data for `MMCT` and the manual override string.
+8.  **UI Update**: The `AIPanel` displays the new, context-specific optimization plan for Mumbai Central, along with a warning alert showing the manual override that was enforced.
 
 ## Section 5: Complete Backend (AI) Architecture
 
 ### 5.1. Genkit Configuration (`src/ai/genkit.ts`)
 *   **Configuration**: A global `ai` object is configured to use the `@genkit-ai/googleai` plugin.
 *   **Default Model**: `googleai/gemini-2.5-flash` is set as the default model.
-    ```typescript
-    import {genkit} from 'genkit';
-    import {googleAI} from '@genkit-ai/googleai';
-
-    export const ai = genkit({
-      plugins: [googleAI()],
-      model: 'googleai/gemini-2.5-flash',
-    });
-    ```
 
 ### 5.2. AI Flows (`src/ai/flows/`)
 
 #### `optimize-train-routes.ts`
 *   **Purpose**: To generate a complete, safe, and efficient action plan for all trains.
 *   **Input (`OptimizeTrainRoutesInput`)**: JSON strings for station layout and train statuses, plus an optional `manualOverride` string.
-*   **Output (`OptimizeTrainRoutesOutput`)**: A Zod schema for an `array` of action objects, each containing `train_id`, `action`, `target_node`, `start_time`, `end_time`, `reasoning`, and `delay_impact_minutes`.
-*   **Core Logic**: The flow defines a highly detailed prompt that instructs the AI, "SAARATHI".
+*   **Output (`OptimizeTrainRoutesOutput`)**: A Zod schema for an `array` of action objects.
+*   **Core Logic**:
     *   **Crucial Instruction**: The prompt has been updated to emphasize that the `manualOverride` is a **strict constraint that limits options**. For example, if an override mentions a platform is closed, the AI is explicitly told it CANNOT use that platform. This improves the AI's interpretation of negative or restrictive commands.
     *   **Rules**: Unbreakable rules for safety and platform fit are defined. Train length calculation is specified as `length_coaches` * 25 meters.
-    *   **Output Format**: The prompt strictly enforces the JSON output schema. The flow calls the prompt and returns the structured output directly as a JSON object (the unnecessary stringification has been removed).
-```
+    *   **Output Format**: The prompt strictly enforces the JSON output schema.

@@ -23,9 +23,9 @@ import { TrainIcon } from "../icons/train-icon";
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/analytics", icon: BarChart2, label: "Analytics" },
-  { href: "#", icon: Train, label: "Rolling Stock" },
-  { href: "#", icon: ShieldCheck, label: "Safety Rules" },
-  { href: "#", icon: History, label: "Audit Logs" },
+  { href: "/rolling-stock", icon: Train, label: "Rolling Stock" },
+  { href: "/safety", icon: ShieldCheck, label: "Safety Rules" },
+  { href: "/audit", icon: History, label: "Audit Trail" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -36,7 +36,7 @@ export function Sidebar() {
     <aside className="hidden w-16 flex-col border-r bg-card sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 py-4">
         <Link
-          href="#"
+          href="/"
           className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
         >
           <TrainIcon className="h-5 w-5 transition-all group-hover:scale-110" />
