@@ -49,7 +49,10 @@ export default function Home() {
   const { station } = useStation();
 
   const fetchLiveTrainData = useCallback(async () => {
-    setIsLoading('live_data');
+    // Don't set loading state if it's just a background refresh
+    if (isLoading !== 'optimization' && isLoading !== 'prediction') {
+        setIsLoading('live_data');
+    }
     try {
       const data = await getLiveStationStatus(station.code);
       setLiveTrainData(data);
@@ -65,13 +68,17 @@ export default function Home() {
     } finally {
       setIsLoading(null);
     }
-  }, [toast, station.code]);
+  }, [toast, station.code, isLoading]);
 
   useEffect(() => {
     fetchLiveTrainData(); // Initial fetch
-    const interval = setInterval(fetchLiveTrainData, 300000); // Refresh every 5 minutes
+  }, [station.code]); // Fetch on station change, but not on every render
+
+  useEffect(() => {
+    const interval = setInterval(fetchLiveTrainData, 900000); // Refresh every 15 minutes
     return () => clearInterval(interval); // Cleanup on unmount
-  }, [fetchLiveTrainData]);
+  }, [fetchLiveTrainData]); // Re-create interval if fetch function changes
+
 
   const handleRunPrediction = async () => {
     setIsLoading('prediction');
