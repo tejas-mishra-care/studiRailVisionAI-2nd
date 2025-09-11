@@ -3,7 +3,6 @@
 
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useStation } from "@/context/station-context";
 import { UploadCloud } from "lucide-react";
+import { StationSwitcher } from "@/components/dashboard/station-switcher";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
   const { station } = useStation();
@@ -50,7 +51,7 @@ export default function SettingsPage() {
                     className="font-semibold"
                   />
                 </div>
-                <Button disabled>Change Station (Coming Soon)</Button>
+                <StationSwitcher />
               </CardContent>
             </Card>
 
