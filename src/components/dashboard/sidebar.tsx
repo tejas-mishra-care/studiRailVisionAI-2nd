@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -25,7 +26,7 @@ const navItems = [
   { href: "#", icon: Train, label: "Rolling Stock" },
   { href: "#", icon: ShieldCheck, label: "Safety Rules" },
   { href: "#", icon: History, label: "Audit Logs" },
-  { href: "#", icon: Settings, label: "Settings" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function Sidebar() {

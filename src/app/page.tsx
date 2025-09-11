@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -13,6 +14,7 @@ import { stationLayoutData } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import { getLiveStationStatus, LiveTrainStatus } from "@/lib/railway-api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useStation } from "@/context/station-context";
 
 type LoadingState = 'prediction' | 'optimization' | 'live_data' | null;
 
@@ -23,11 +25,12 @@ export default function Home() {
   const [activeOverride, setActiveOverride] = useState<string | null>(null);
   const [liveTrainData, setLiveTrainData] = useState<LiveTrainStatus[]>([]);
   const { toast } = useToast();
+  const { station } = useStation();
 
   const fetchLiveTrainData = useCallback(async () => {
     setIsLoading('live_data');
     try {
-      const data = await getLiveStationStatus("NDLS");
+      const data = await getLiveStationStatus(station.code);
       setLiveTrainData(data);
     } catch (error) {
       console.error("Error fetching live train data:", error);
@@ -41,7 +44,7 @@ export default function Home() {
     } finally {
       setIsLoading(null);
     }
-  }, [toast]);
+  }, [toast, station.code]);
 
   useEffect(() => {
     fetchLiveTrainData(); // Initial fetch

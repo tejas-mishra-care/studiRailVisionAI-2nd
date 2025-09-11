@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -5,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { TrainFront, Signal, TrafficCone, ArrowRight, ArrowLeft, Clock } from "lucide-react";
 import type { LiveTrainStatus } from '@/lib/railway-api';
+import { useStation } from '@/context/station-context';
 
 export function Map({ trainData }: { trainData: LiveTrainStatus[] }) {
   const [currentTime, setCurrentTime] = useState('');
+  const { station } = useStation();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,8 +66,8 @@ export function Map({ trainData }: { trainData: LiveTrainStatus[] }) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>NDLS Digital Twin</CardTitle>
-          <CardDescription>Live operational map of New Delhi Railway Station</CardDescription>
+          <CardTitle>{station.code} Digital Twin</CardTitle>
+          <CardDescription>Live operational map of {station.name}</CardDescription>
         </div>
         <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
