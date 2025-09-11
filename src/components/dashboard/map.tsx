@@ -40,23 +40,23 @@ export function Map({ trainData }: { trainData: LiveTrainStatus[] }) {
 
   // A helper to place trains on the map based on their status
   const getTrainPosition = (train: LiveTrainStatus): { x: number, y: number, color: string, direction: 'in' | 'out' | 'none', destinationText: string } => {
-    const defaultPosition = { x: 50, y: 50, color: "text-gray-400", direction: 'none', destinationText: train.destination };
+    const defaultPosition = { x: 50, y: 50, color: "text-gray-400", direction: 'none' as const, destinationText: train.destination };
     const platformNumber = train.platform_number ? parseInt(train.platform_number, 10) : 0;
     
     if (train.event_type === 'DEPARTURE' && train.status.includes("Departed")) {
-       return { x: 800, y: platformYPosition(platformNumber) - 10, color: "text-green-500", direction: 'out', destinationText: `To ${train.destination}` };
+       return { x: 800, y: platformYPosition(platformNumber) - 10, color: "text-green-500", direction: 'out' as const, destinationText: `To ${train.destination}` };
     }
     if (train.status.includes("Approaching")) {
-       return { x: 180, y: 80, color: "text-orange-500", direction: 'in', destinationText: `To P-${platformNumber}` };
+       return { x: 180, y: 80, color: "text-orange-500", direction: 'in' as const, destinationText: `To P-${platformNumber}` };
     }
     if (train.last_location.includes("Yard")) {
-       return { x: 650, y: 45, color: "text-gray-500", direction: 'none', destinationText: "Yard/Stabling" };
+       return { x: 650, y: 45, color: "text-gray-500", direction: 'none' as const, destinationText: "Yard/Stabling" };
     }
-    if (train.event_type === 'ARRIVAL' && train.status === 'On Time' && platformNumber > 0) { // Train is AT a platform
-        return { x: 450, y: platformYPosition(platformNumber) - 10, color: "text-blue-500", direction: 'none', destinationText: `At P-${platformNumber}` };
+    if (train.status.includes("Halted") && platformNumber > 0) { // Train is AT a platform
+        return { x: 450, y: platformYPosition(platformNumber) - 10, color: "text-blue-500", direction: 'none' as const, destinationText: `At P-${platformNumber}` };
     }
-     if (train.event_type === 'ARRIVAL' && platformNumber > 0) { // Train is assigned to a platform but not there yet
-      return { x: 250, y: platformYPosition(platformNumber) - 10, color: "text-yellow-500", direction: 'in', destinationText: `To P-${platformNumber}` };
+    if (train.event_type === 'ARRIVAL' && platformNumber > 0) { // Train is assigned to a platform but not there yet
+      return { x: 250, y: platformYPosition(platformNumber) - 10, color: "text-yellow-500", direction: 'in' as const, destinationText: `To P-${platformNumber}` };
     }
     
     return defaultPosition;
