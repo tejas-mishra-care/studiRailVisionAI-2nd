@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -27,15 +28,16 @@ function SafetyShieldStatus({ active }: { active: boolean }) {
   ];
 
   useEffect(() => {
+    let timer1: NodeJS.Timeout, timer2: NodeJS.Timeout;
     if (active) {
       setStatusStep(0);
-      const timer1 = setTimeout(() => setStatusStep(1), 1500);
-      const timer2 = setTimeout(() => setStatusStep(2), 3000);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
+      timer1 = setTimeout(() => setStatusStep(1), 1500);
+      timer2 = setTimeout(() => setStatusStep(2), 3000);
     }
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
   }, [active]);
   
   if (!active) return null;
@@ -94,8 +96,8 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData, manua
           <TabsContent value="optimization" className="mt-4">
             {isLoading ? (
               <div className="space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-24 w-full" />
+                <SafetyShieldStatus active={true} />
+                <Skeleton className="h-48 w-full" />
               </div>
             ) : (
               <div className="space-y-4">
@@ -108,7 +110,7 @@ export function AIPanel({ isLoading, predictionData, optimizationPlanData, manua
                     </AlertDescription>
                   </Alert>
                 )}
-                <SafetyShieldStatus active={!!optimizationPlanData} />
+                
                 {sortedOptimizationPlan && sortedOptimizationPlan.length > 0 ? (
                   <Table>
                     <TableHeader>

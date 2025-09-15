@@ -61,8 +61,6 @@ export default function Home() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchLiveTrainData = useCallback(async (isManualRefresh = false) => {
-    if (isLoading === 'optimization' || isLoading === 'prediction') return;
-
     // Don't show skeleton on background refresh, only on initial load or manual refresh
     if (liveTrainData.length === 0 || isManualRefresh) {
       setIsLoading('live_data');
@@ -85,7 +83,7 @@ export default function Home() {
       setIsLoading(null);
       setCountdown(REFRESH_INTERVAL_SECONDS);
     }
-  }, [toast, station.code, isLoading, liveTrainData.length]);
+  }, [toast, station.code, liveTrainData.length]);
 
 
   // Effect for the main countdown timer
@@ -190,7 +188,7 @@ export default function Home() {
             <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
               {isLoading === 'live_data' ? <Skeleton className="aspect-[2/1] w-full" /> : <Map trainData={liveTrainData} />}
               <AIPanel 
-                isLoading={isLoading === 'optimization' || isLoading === 'prediction'} 
+                isLoading={isLoading === 'optimization'} 
                 predictionData={prediction} 
                 optimizationPlanData={optimization}
                 manualOverride={activeOverride}
