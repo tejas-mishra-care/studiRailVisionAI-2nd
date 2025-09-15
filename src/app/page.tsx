@@ -71,6 +71,7 @@ export default function Home() {
     try {
       const data = await getLiveStationStatus(station.code);
       setLiveTrainData(data);
+      return data; // Return the data for immediate use
     } catch (error) {
       console.error("Error fetching live train data:", error);
       toast({
@@ -79,6 +80,7 @@ export default function Home() {
         variant: "destructive",
       });
       setLiveTrainData([]);
+      return []; // Return empty array on error
     } finally {
       setIsLoading(null);
       setCountdown(REFRESH_INTERVAL_SECONDS);
@@ -147,12 +149,21 @@ export default function Home() {
     const combinedOverride = formatScenarioForAI(scenarioRules, overrideText);
     setActiveOverride(combinedOverride || null);
     try {
-      // Refresh data right before running optimization
-      await fetchLiveTrainData(true);
+      // Refresh data right before running optimization and use the returned fresh data
+      const freshTrainData = await fetchLiveTrainData(true);
+      if (freshTrainData.length === 0) {
+        toast({
+          title: "Optimization Canceled",
+          description: "Could not proceed without live train data.",
+          variant: "destructive",
+        });
+        setIsLoading(null);
+        return;
+      }
       
       const result = await optimizeTrainRoutes({
         stationLayout: JSON.stringify(stationLayoutData),
-        liveTrainStatuses: JSON.stringify(liveTrainData),
+        liveTrainStatuses: JSON.stringify(freshTrainData),
         manualOverride: combinedOverride,
       });
       setOptimization(result);
