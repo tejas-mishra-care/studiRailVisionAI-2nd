@@ -43,7 +43,7 @@ The primary users are **Railway Traffic Controllers** and **Operations Managers*
 
 ### Backend (AI & Server-side Logic):
 *   **AI Toolkit:** Genkit 1.14.1
-*   **AI Model Provider:** `@genkit-ai/googleai` 1.14.1, utilizing the 'gemini-2.5-flash' model by default.
+*   **AI Model Provider:** `@genkit-ai/googleai` 1.14.1, utilizing the 'gemini-1.5-flash' model by default.
 *   **Server Environment:** Next.js Server Actions and Route Handlers. AI flows are defined as server-side functions.
 
 ### APIs:
@@ -165,7 +165,7 @@ The visual identity is defined in `src/app/globals.css` using HSL CSS variables 
 
 ### 5.1. Genkit Configuration (`src/ai/genkit.ts`)
 *   **Configuration**: A global `ai` object is configured to use the `@genkit-ai/googleai` plugin.
-*   **Default Model**: `googleai/gemini-2.5-flash` is set as the default model.
+*   **Default Model**: `googleai/gemini-1.5-flash` is set as the default model.
 
 ### 5.2. AI Flows (`src/ai/flows/`)
 

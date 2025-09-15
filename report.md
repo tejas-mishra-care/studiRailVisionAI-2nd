@@ -29,7 +29,7 @@ The application is built as a web-based platform that visualizes a live "digital
 - **Description:** The core feature where the AI engine generates a safe, conflict-free, and efficient action plan for all trains. The plan is presented as a chronological list of actions (Assign, Hold, Proceed) with clear reasoning.
 - **Technical Implementation:**
     - This is powered by a Genkit flow defined in `src/ai/flows/optimize-train-routes.ts`.
-    - A detailed prompt instructs the AI model (`gemini-2.5-flash`) on safety rules, constraints, and the required JSON output format.
+    - A detailed prompt instructs the AI model (`gemini-1.5-flash`) on safety rules, constraints, and the required JSON output format.
     - The `AIPanel` component (`src/components/dashboard/ai-panel.tsx`) displays the results in a sorted table.
 
 ### 2.4. Manual Override & Scenario Building
@@ -64,7 +64,7 @@ The application is built as a web-based platform that visualizes a live "digital
 
 ### 3.2. Backend (AI Engine)
 - **Framework:** Genkit 1.14.
-- **Model Provider:** `@genkit-ai/googleai`, utilizing the `gemini-2.5-flash` model.
+- **Model Provider:** `@genkit-ai/googleai`, utilizing the `gemini-1.5-flash` model.
 - **Logic:** AI logic is encapsulated in server-side "flows" located in `src/ai/flows/`. These are TypeScript functions that define the AI's prompts, input/output schemas (using Zod), and core processing logic. They are called directly from the frontend as Next.js Server Actions.
 
 ### 3.3. Data Flow
