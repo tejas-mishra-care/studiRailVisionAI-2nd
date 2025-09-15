@@ -82,13 +82,14 @@ export default function Home() {
 
   // Main data fetching handler for manual refreshes and the initial load.
   const handleDataRefresh = useCallback(async (isInitialLoad = false) => {
-    // Only show skeleton on initial load or manual refresh
-    if (isInitialLoad || !liveTrainData.length) {
-      setIsLoading('live_data');
+    if (isInitialLoad) {
+        setIsLoading('live_data');
     }
     await fetchLiveTrainData();
-    setIsLoading(null);
-  }, [fetchLiveTrainData, liveTrainData.length]);
+    if (isInitialLoad) {
+        setIsLoading(null);
+    }
+  }, [fetchLiveTrainData]);
 
 
   // Effect for the main countdown timer
