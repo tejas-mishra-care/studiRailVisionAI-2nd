@@ -60,12 +60,8 @@ export default function Home() {
   const { station } = useStation();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchLiveTrainData = useCallback(async (isManualRefresh = false) => {
-    // Don't show skeleton on background refresh, only on initial load or manual refresh
-    if (liveTrainData.length === 0 || isManualRefresh) {
-      setIsLoading('live_data');
-    }
-
+  // This function now ONLY fetches data and resets the countdown. It does not manage loading state.
+  const fetchLiveTrainData = useCallback(async () => {
     try {
       const data = await getLiveStationStatus(station.code);
       setLiveTrainData(data);
@@ -80,52 +76,63 @@ export default function Home() {
       setLiveTrainData([]);
       return []; // Return empty array on error
     } finally {
-      setIsLoading(null);
       setCountdown(REFRESH_INTERVAL_SECONDS);
     }
-  }, [toast, station.code, liveTrainData.length]);
+  }, [toast, station.code]);
+
+  // Main data fetching handler for manual refreshes and the initial load.
+  const handleDataRefresh = useCallback(async (isInitialLoad = false) => {
+    // Only show skeleton on initial load or manual refresh
+    if (isInitialLoad || !liveTrainData.length) {
+      setIsLoading('live_data');
+    }
+    await fetchLiveTrainData();
+    setIsLoading(null);
+  }, [fetchLiveTrainData, liveTrainData.length]);
 
 
   // Effect for the main countdown timer
   useEffect(() => {
-    // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
-
-    // Set up the new timer
     timerRef.current = setInterval(() => {
       setCountdown((prevCountdown) => {
         if (prevCountdown <= 1) {
-          fetchLiveTrainData(); // This will also reset the countdown
+          fetchLiveTrainData(); // This also resets the countdown
           return REFRESH_INTERVAL_SECONDS;
         }
         return prevCountdown - 1;
       });
     }, 1000);
-
-    // Cleanup on unmount
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
-  }, [fetchLiveTrainData]); // Rerun when fetch function changes (e.g., station change)
+  }, [fetchLiveTrainData]);
 
   // Effect for initial data load and station changes
   useEffect(() => {
-    setIsLoading('live_data'); // Always show loading on station change
-    fetchLiveTrainData(true);
-  }, [station.code]); // Removed fetchLiveTrainData from deps to avoid loop
+    handleDataRefresh(true);
+  }, [station.code]); // Removed handleDataRefresh from deps to avoid loop
 
 
   const handleRunPrediction = async () => {
     setIsLoading('prediction');
     setPrediction(null);
     try {
+      // Use latest data for prediction
+      const freshData = await fetchLiveTrainData();
+      if (freshData.length === 0) {
+        toast({ title: "Prediction Canceled", description: "No live data available." });
+        setIsLoading(null);
+        return;
+      }
+
       const result = await predictFutureTraffic({
         stationLayout: JSON.stringify(stationLayoutData),
-        liveTrainStatuses: JSON.stringify(liveTrainData),
+        liveTrainStatuses: JSON.stringify(freshData),
       });
       const parsedResult = JSON.parse(result.predictedTrafficConditions);
       setPrediction(parsedResult);
@@ -146,9 +153,10 @@ export default function Home() {
     setOptimization(null);
     const combinedOverride = formatScenarioForAI(scenarioRules, overrideText);
     setActiveOverride(combinedOverride || null);
+
     try {
       // Refresh data right before running optimization and use the returned fresh data
-      const freshTrainData = await fetchLiveTrainData(true);
+      const freshTrainData = await fetchLiveTrainData();
       if (freshTrainData.length === 0) {
         toast({
           title: "Optimization Canceled",
@@ -198,7 +206,7 @@ export default function Home() {
               <ControlPanel 
                 onRunPrediction={handleRunPrediction}
                 onRunOptimization={handleRunOptimization}
-                onRefreshData={() => fetchLiveTrainData(true)}
+                onRefreshData={() => handleDataRefresh()}
                 loadingState={isLoading}
                 trainData={liveTrainData}
                 countdown={countdown}
